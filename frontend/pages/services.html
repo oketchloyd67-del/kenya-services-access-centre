@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Service Providers - Kenya Services Access Centre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f2f5 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .nav-brand h1 {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #4a5568;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #667eea;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn-logout {
+            background: #e53e3e;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+
+        .user-welcome {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .user-welcome i {
+            color: #667eea;
+            margin-right: 5px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #4a5568;
+        }
+
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: white;
+            padding: 20px;
+            gap: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .mobile-menu a, .mobile-menu button {
+            text-decoration: none;
+            padding: 10px 0;
+            width: 100%;
+            text-align: left;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 90px;
+            padding-bottom: 60px;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 28px;
+            padding: 50px 40px;
+            margin-bottom: 40px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 25px 40px -15px rgba(102,126,234,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .hero-section h1 {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-section p {
+            font-size: 18px;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Category Pills */
+        .categories-section {
+            margin-bottom: 40px;
+        }
+
+        .categories-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .categories-title i {
+            color: #667eea;
+        }
+
+        .categories-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .category-pill {
+            background: white;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .category-pill:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .category-pill.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .search-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-title i {
+            color: #667eea;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-input {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+            background: white;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        /* Results Header */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .results-count {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #4a5568;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .results-count span {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Service Cards Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 35px -12px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .service-card.featured {
+            border: 2px solid #f6ad55;
+            position: relative;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #f6ad55;
+            color: #7c2d12;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .service-card-header {
+            padding: 20px 20px 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-icon i {
+            font-size: 28px;
+            color: #667eea;
+        }
+
+        .service-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f8fafc;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .service-rating i {
+            color: #f6ad55;
+            font-size: 12px;
+        }
+
+        .service-rating span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .service-card-body {
+            padding: 16px 20px;
+        }
+
+        .service-business-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .service-category {
+            display: inline-block;
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .service-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .service-location i {
+            width: 16px;
+            color: #667eea;
+        }
+
+        .service-description {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .service-stats {
+            display: flex;
+            gap: 16px;
+            padding: 12px 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .service-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .service-stat i {
+            color: #667eea;
+        }
+
+        .service-price {
+            font-weight: 600;
+            color: #38a169;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-connect {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-connect i {
+            margin-right: 8px;
+        }
+
+        .btn-connect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn-profile {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-profile:hover {
+            background: #e2e8f0;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        .page-btn {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .page-btn:hover {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 30px;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-content h3 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1a202c;
+        }
+
+        .modal-content h3 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .contact-details {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .contact-details p {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-details i {
+            width: 24px;
+            color: #667eea;
+        }
+
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #25d366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37,211,102,0.3);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #38a169;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .toast.error {
+            background: #e53e3e;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-placeholder {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a202c;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: #a0aec0;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-section h1 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .hero-section {
+                padding: 30px 20px;
+            }
+            .hero-section h1 {
+                font-size: 24px;
+            }
+            .service-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Kenya Services Access Centre</h1>
+            </div>
+            <div class="nav-links">
+                <a href="../index.html">Home</a>
+                <a href="job-search.html">Find Jobs</a>
+                <a href="services.html" class="active">Services</a>
+                <span id="userName" class="user-welcome"></span>
+                <a href="login.html" id="loginLink" class="btn-login">Login</a>
+                <button id="logoutBtn" onclick="logout()" class="btn-logout hidden">Logout</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="../index.html">Home</a>
+            <a href="job-search.html">Find Jobs</a>
+            <a href="services.html">Services</a>
+            <a href="login.html" id="mobileLoginLink" class="btn-login" style="text-align: center;">Login</a>
+            <button id="mobileLogoutBtn" onclick="logout()" class="btn-logout hidden" style="text-align: center;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1><i class="fas fa-tools"></i> Find Service Providers</h1>
+            <p>Connect with trusted professionals across Kenya - Plumbers, Electricians, IT Experts, Mechanics and more</p>
+        </div>
+
+        <!-- Categories Section -->
+        <div class="categories-section">
+            <div class="categories-title">
+                <i class="fas fa-tags"></i>
+                <span>Popular Categories</span>
+            </div>
+            <div class="categories-pills" id="categoriesContainer">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Search Card -->
+        <div class="search-card">
+            <div class="search-title">
+                <i class="fas fa-sliders-h"></i>
+                <span>Find Your Service Provider</span>
+            </div>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> Search</label>
+                    <input type="text" id="serviceKeyword" class="filter-input" placeholder="Business name or service...">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Location</label>
+                    <input type="text" id="serviceLocation" class="filter-input" placeholder="City or town...">
+                </div>
+                <button id="searchServicesBtn" class="search-btn"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-header">
+            <div class="results-count">
+                <i class="fas fa-store"></i> <span id="serviceCount">0</span> service providers found
+            </div>
+        </div>
+
+        <div class="services-grid" id="servicesContainer">
+            <div class="loading-placeholder">
+                <div class="spinner"></div>
+                <p>Loading trusted service providers...</p>
+            </div>
+        </div>
+
+        <div id="servicesPagination" class="pagination"></div>
+    </div>
+
+    <!-- Connection Modal -->
+    <div id="connectModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-handshake"></i> Connect with Provider</h3>
+            <form id="connectionForm">
+                <input type="hidden" id="connectProviderId">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Your Full Name *</label>
+                    <input type="text" id="seekerName" required class="filter-input" style="width:100%">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Your Email *</label>
+                    <input type="email" id="seekerEmail" required class="filter-input" style="width:100%">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Your Phone Number *</label>
+                    <input type="tel" id="seekerPhone" required class="filter-input" style="width:100%">
+                </div>
+                <div style="background: #f0f4ff; padding: 15px; border-radius: 12px; margin: 15px 0;">
+                    <p><i class="fas fa-info-circle" style="color: #667eea;"></i> Connection fee: <strong>KES 100</strong></p>
+                    <p style="font-size: 12px; color: #718096; margin-top: 5px;">You will receive an M-PESA prompt on your phone</p>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeModal('connectModal')" class="btn-profile">Cancel</button>
+                    <button type="submit" class="btn-connect"><i class="fas fa-phone-alt"></i> Pay KES 100 & Connect</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Provider Details Modal (after payment) -->
+    <div id="providerDetailsModal" class="modal">
+        <div class="modal-content">
+            <div id="providerDetailsContent"></div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('providerDetailsModal')" class="btn-profile">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal (free view) -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div id="profileContent"></div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('profileModal')" class="btn-profile">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 Kenya Services Access Centre. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // API Base URL
+        const API_BASE_URL = 'http://localhost:5000';
+        
+        // Global variables
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+        let currentPage = 1;
+        
+        // Helper functions
+        function getCurrentUser() {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                return currentUser;
+            }
+            return null;
+        }
+        
+        function showNotification(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type || 'success'}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+        
+        function showLoading(show) {
+            let overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'loadingOverlay';
+                    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999';
+                    overlay.innerHTML = '<div style="background:white;padding:30px;border-radius:20px;"><div class="spinner"></div><p style="margin-top:15px;">Processing...</p></div>';
+                    document.body.appendChild(overlay);
+                }
+            } else {
+                if (overlay) overlay.remove();
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Update UI based on login state
+        function updateAuthUI() {
+            const user = getCurrentUser();
+            const loginLink = document.getElementById('loginLink');
+            const mobileLoginLink = document.getElementById('mobileLoginLink');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const userNameSpan = document.getElementById('userName');
+            
+            if (user) {
+                if (loginLink) loginLink.classList.add('hidden');
+                if (mobileLoginLink) mobileLoginLink.classList.add('hidden');
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+                if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
+                if (userNameSpan) userNameSpan.innerHTML = `<i class="fas fa-user-circle"></i> ${user.full_name}`;
+            } else {
+                if (loginLink) loginLink.classList.remove('hidden');
+                if (mobileLoginLink) mobileLoginLink.classList.remove('hidden');
+                if (logoutBtn) logoutBtn.classList.add('hidden');
+                if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
+                if (userNameSpan) userNameSpan.innerHTML = '';
+            }
+        }
+        
+        // Load categories
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/services/categories/list`);
+                const data = await response.json();
+                
+                const container = document.getElementById('categoriesContainer');
+                if (data.success && data.categories) {
+                    let html = '<div class="category-pill active" data-category="all">All Categories</div>';
+                    data.categories.forEach(cat => {
+                        html += `<div class="category-pill" data-category="${escapeHtml(cat.service_category)}">${escapeHtml(cat.service_category)} <span style="font-size:11px; background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:20px;">${cat.provider_count}</span></div>`;
+                    });
+                    container.innerHTML = html;
+                    
+                    // Add click handlers
+                    document.querySelectorAll('.category-pill').forEach(pill => {
+                        pill.addEventListener('click', () => {
+                            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                            pill.classList.add('active');
+                            const category = pill.dataset.category === 'all' ? '' : pill.dataset.category;
+                            document.getElementById('serviceCategory').value = category;
+                            searchServices();
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+        
+        // Search services
+        async function searchServices(page = 1) {
+            const keyword = document.getElementById('serviceKeyword')?.value || '';
+            const location = document.getElementById('serviceLocation')?.value || '';
+            const activeCategory = document.querySelector('.category-pill.active')?.dataset.category;
+            const category = (activeCategory && activeCategory !== 'all') ? activeCategory : '';
+            
+            currentPage = page;
+            
+            showLoading(true);
+            
+            try {
+                const params = new URLSearchParams({ keyword, location, category, page });
+                const response = await fetch(`${API_BASE_URL}/api/services/search?${params}`);
+                const data = await response.json();
+                
+                showLoading(false);
+                
+                if (data.success) {
+                    displayServices(data.providers);
+                    displayPagination(data.pagination, page);
+                    document.getElementById('serviceCount').innerHTML = data.count || 0;
+                } else {
+                    showNotification('Failed to load service providers', 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('An error occurred', 'error');
+            }
+        }
+        
+        function displayServices(providers) {
+            const container = document.getElementById('servicesContainer');
+            if (!container) return;
+            
+            if (!providers || providers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-store-slash"></i>
+                        <p>No service providers found matching your criteria.</p>
+                        <p style="font-size: 14px; margin-top: 10px;">Try adjusting your search or selecting a different category</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = providers.map(provider => `
+                <div class="service-card ${provider.is_featured ? 'featured' : ''}">
+                    ${provider.is_featured ? '<div class="featured-badge"><i class="fas fa-star"></i> Featured</div>' : ''}
+                    <div class="service-card-header">
+                        <div class="service-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="service-rating">
+                            <i class="fas fa-star"></i>
+                            <span>${provider.average_rating ? provider.average_rating.toFixed(1) : '4.8'}</span>
+                        </div>
+                    </div>
+                    <div class="service-card-body">
+                        <h3 class="service-business-name">${escapeHtml(provider.business_name)}</h3>
+                        <span class="service-category"><i class="fas fa-tag"></i> ${escapeHtml(provider.service_category)}</span>
+                        <div class="service-location">
+                            <i class="fas fa-map-marker-alt"></i> ${escapeHtml(provider.location)}
+                        </div>
+                        <p class="service-description">${escapeHtml(provider.description)}</p>
+                        <div class="service-stats">
+                            <div class="service-stat"><i class="fas fa-briefcase"></i> ${provider.years_experience || 0}+ yrs</div>
+                            <div class="service-stat"><i class="fas fa-users"></i> ${provider.total_connections || 0} clients</div>
+                        </div>
+                        <div class="service-price"><i class="fas fa-tag"></i> ${escapeHtml(provider.price_range || 'Contact for quote')}</div>
+                        <div class="service-actions">
+                            <button onclick="connectToProvider('${provider.id}')" class="btn-connect"><i class="fas fa-phone-alt"></i> Connect (KES 100)</button>
+                            <button onclick="viewProviderProfile('${provider.id}')" class="btn-profile"><i class="fas fa-info-circle"></i> Profile</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayPagination(pagination, currentPage) {
+            const container = document.getElementById('servicesPagination');
+            if (!container) return;
+            
+            if (!pagination || pagination.pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 1; i <= pagination.pages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="searchServices(${i})">${i}</button>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        // Connect to provider (KES 100)
+        function connectToProvider(providerId) {
+            const user = getCurrentUser();
+            if (!user) {
+                showNotification('Please login to connect with service providers', 'error');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const modal = document.getElementById('connectModal');
+            if (modal) {
+                document.getElementById('connectProviderId').value = providerId;
+                modal.classList.add('active');
+            }
+        }
+        
+        async function submitConnection(event) {
+            event.preventDefault();
+            
+            const user = getCurrentUser();
+            const providerId = document.getElementById('connectProviderId').value;
+            const seekerName = document.getElementById('seekerName').value;
+            const seekerEmail = document.getElementById('seekerEmail').value;
+            const seekerPhone = document.getElementById('seekerPhone').value;
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/services/connect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        providerId,
+                        seekerId: user.id,
+                        seeker_name: seekerName,
+                        seeker_email: seekerEmail,
+                        seeker_phone: seekerPhone
+                    })
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    if (data.already_paid) {
+                        showProviderDetailsModal(data.provider);
+                        closeModal('connectModal');
+                    } else if (data.requires_payment) {
+                        const phoneNumber = prompt('Enter your M-PESA phone number to pay KES 100:');
+                        if (phoneNumber && /^(07|2547|7)\d{8}$/.test(phoneNumber.replace(/\s/g, ''))) {
+                            const payment = await initiateMpesaPayment(phoneNumber, 100, 'service_connection', user.id, data.metadata);
+                            if (payment.success) {
+                                showNotification('Payment successful! Connecting you with the service provider...', 'success');
+                                closeModal('connectModal');
+                                setTimeout(() => {
+                                    connectToProvider(providerId);
+                                }, 3000);
+                            }
+                        } else {
+                            showNotification('Invalid phone number', 'error');
+                        }
+                    }
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('An error occurred', 'error');
+            }
+        }
+        
+        function showProviderDetailsModal(provider) {
+            const modal = document.getElementById('providerDetailsModal');
+            const content = document.getElementById('providerDetailsContent');
+            
+            if (modal && content) {
+                content.innerHTML = `
+                    <h3><i class="fas fa-building"></i> ${escapeHtml(provider.business_name)}</h3>
+                    <div class="contact-details">
+                        <p><i class="fas fa-user"></i> <strong>Contact Person:</strong> ${escapeHtml(provider.name)}</p>
+                        <p><i class="fas fa-phone"></i> <strong>Phone:</strong> <a href="tel:${provider.phone}">${escapeHtml(provider.phone)}</a></p>
+                        <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <a href="mailto:${provider.email}">${escapeHtml(provider.email)}</a></p>
+                        <p><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> ${escapeHtml(provider.location)}</p>
+                        <p><i class="fas fa-clock"></i> <strong>Experience:</strong> ${provider.years_experience || 0} years</p>
+                    </div>
+                    <a href="https://wa.me/${provider.phone}" target="_blank" class="whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+                    </a>
+                `;
+                modal.classList.add('active');
+            }
+        }
+        
+        // View provider profile (free)
+        async function viewProviderProfile(providerId) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/services/${providerId}`);
+                const data = await response.json();
+                
+                showLoading(false);
+                
+                if (data.success) {
+                    const provider = data.provider;
+                    const modal = document.getElementById('profileModal');
+                    const content = document.getElementById('profileContent');
+                    
+                    if (modal && content) {
+                        content.innerHTML = `
+                            <h3><i class="fas fa-store"></i> ${escapeHtml(provider.business_name)}</h3>
+                            <div style="margin-bottom: 20px;">
+                                <p><strong><i class="fas fa-tag"></i> Category:</strong> ${escapeHtml(provider.service_category)}${provider.sub_category ? ' - ' + escapeHtml(provider.sub_category) : ''}</p>
+                                <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> ${escapeHtml(provider.location)}</p>
+                                <p><strong><i class="fas fa-briefcase"></i> Experience:</strong> ${provider.years_experience || 0} years</p>
+                                <p><strong><i class="fas fa-tag"></i> Price Range:</strong> ${escapeHtml(provider.price_range || 'Contact for quote')}</p>
+                                <p><strong><i class="fas fa-align-left"></i> Description:</strong></p>
+                                <p>${escapeHtml(provider.description || 'No description provided')}</p>
+                                <p><strong><i class="fas fa-users"></i> Total Connections:</strong> ${provider.total_connections || 0}</p>
+                            </div>
+                            <div class="modal-buttons">
+                                <button onclick="closeModal('profileModal')" class="btn-profile">Close</button>
+                                <button onclick="closeModal('profileModal'); connectToProvider('${providerId}')" class="btn-connect">
+                                    <i class="fas fa-phone-alt"></i> Connect (KES 100)
+                                </button>
+                            </div>
+                        `;
+                        modal.classList.add('active');
+                    }
+                } else {
+                    showNotification('Failed to load provider profile', 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('An error occurred', 'error');
+            }
+        }
+        
+        // M-PESA payment function
+        async function initiateMpesaPayment(phoneNumber, amount, transactionType, userId, metadata) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/payments/mpesa/stkpush`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ phoneNumber, amount, transactionType, userId, metadata })
+                });
+                return await response.json();
+            } catch (error) {
+                return { success: false, message: 'Payment failed' };
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('active');
+        });
+        
+        document.getElementById('searchServicesBtn')?.addEventListener('click', () => searchServices());
+        document.getElementById('serviceKeyword')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchServices();
+        });
+        
+        document.getElementById('connectionForm')?.addEventListener('submit', submitConnection);
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            loadCategories();
+            searchServices();
+            
+            // Add category select hidden input for tracking
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.id = 'serviceCategory';
+            document.body.appendChild(hiddenInput);
+        });
+        
+        // Make functions global
+        window.searchServices = searchServices;
+        window.connectToProvider = connectToProvider;
+        window.viewProviderProfile = viewProviderProfile;
+        window.closeModal = closeModal;
+        window.logout = logout;
+        window.initiateMpesaPayment = initiateMpesaPayment;
+    </script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Kenya Services Access Centre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h1>Kenya Services</h1>
+        <p>Access Centre</p>
+    </div>
+    <nav class="sidebar-nav">
+        <a onclick="showSection('dashboard')" class="sidebar-item active" data-section="dashboard">
+            <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+        </a>
+        <a onclick="showSection('users')" class="sidebar-item" data-section="users">
+            <i class="fas fa-users"></i><span>Users</span>
+            <span id="pendingUsersBadge" class="badge badge-danger badge-ml-auto hidden">0</span>
+        </a>
+        <a onclick="showSection('employers')" class="sidebar-item" data-section="employers">
+            <i class="fas fa-building"></i><span>Employers</span>
+        </a>
+        <a onclick="showSection('jobSeekers')" class="sidebar-item" data-section="jobSeekers">
+            <i class="fas fa-user-graduate"></i><span>Job Seekers</span>
+        </a>
+        <a onclick="showSection('serviceProviders')" class="sidebar-item" data-section="serviceProviders">
+            <i class="fas fa-tools"></i><span>Service Providers</span>
+        </a>
+        <a onclick="showSection('jobs')" class="sidebar-item" data-section="jobs">
+            <i class="fas fa-briefcase"></i><span>Jobs</span>
+        </a>
+        <a onclick="showSection('transactions')" class="sidebar-item" data-section="transactions">
+            <i class="fas fa-money-bill-wave"></i><span>Transactions</span>
+        </a>
+        <a onclick="showSection('reviews')" class="sidebar-item" data-section="reviews">
+            <i class="fas fa-star"></i><span>Reviews</span>
+            <span id="pendingReviewsBadge" class="badge badge-danger badge-ml-auto hidden">0</span>
+        </a>
+        <a onclick="showSection('logs')" class="sidebar-item" data-section="logs">
+            <i class="fas fa-file-alt"></i><span>System Logs</span>
+        </a>
+        <a onclick="showSection('settings')" class="sidebar-item" data-section="settings">
+            <i class="fas fa-cog"></i><span>Settings</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <a onclick="logout()" class="sidebar-item logout-item">
+            <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+        </a>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="top-header">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="admin-info">
+            <span id="adminName">Admin</span>
+            <div class="admin-avatar"><i class="fas fa-user-shield"></i></div>
+        </div>
+    </div>
+    <div class="content-area">
+        <div id="dashboardSection">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card"><div class="flex justify-between items-center"><div><p class="text-gray-500 text-sm">Total Users</p><p id="totalUsers" class="text-2xl font-bold text-gray-800">0</p></div><div class="stat-icon stat-icon-blue"><i class="fas fa-users text-blue-600 text-xl"></i></div></div></div>
+                <div class="stat-card"><div class="flex justify-between items-center"><div><p class="text-gray-500 text-sm">Total Revenue</p><p id="totalRevenue" class="text-2xl font-bold text-green-600">KES 0</p></div><div class="stat-icon stat-icon-green"><i class="fas fa-money-bill-wave text-green-600 text-xl"></i></div></div></div>
+                <div class="stat-card"><div class="flex justify-between items-center"><div><p class="text-gray-500 text-sm">Active Jobs</p><p id="activeJobs" class="text-2xl font-bold text-gray-800">0</p></div><div class="stat-icon stat-icon-purple"><i class="fas fa-briefcase text-purple-600 text-xl"></i></div></div></div>
+                <div class="stat-card"><div class="flex justify-between items-center"><div><p class="text-gray-500 text-sm">Pending Verifications</p><p id="pendingVerifications" class="text-2xl font-bold text-orange-600">0</p></div><div class="stat-icon stat-icon-orange"><i class="fas fa-clock text-orange-600 text-xl"></i></div></div></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="chart-card"><h3 class="text-lg font-semibold mb-4">Revenue Overview (Last 7 Days)</h3><canvas id="revenueChart" height="250"></canvas></div>
+                <div class="chart-card"><h3 class="text-lg font-semibold mb-4">User Registrations (Last 7 Days)</h3><canvas id="usersChart" height="250"></canvas></div>
+            </div>
+            <div class="transactions-card"><div class="card-header"><h3 class="text-lg font-semibold">Recent Transactions</h3></div><div class="overflow-x-auto"><table class="data-table"><thead><table><th>Receipt No</th><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentTransactions"><tr><td colspan="6" class="loading-cell"><div class="spinner"></div><p class="mt-2">Loading transactions...</p></td></tr></tbody></table></div></div>
+        </div>
+
+        <div id="usersSection" class="hidden-section"><div class="users-card"><div class="card-header-flex"><h3 class="text-lg font-semibold">All Users</h3><div class="filter-group"><select id="userRoleFilter" class="form-control w-auto" onchange="loadUsers()"><option value="">All Roles</option><option value="employer">Employers</option><option value="job_seeker">Job Seekers</option><option value="service_provider">Service Providers</option></select><select id="userStatusFilter" class="form-control w-auto" onchange="loadUsers()"><option value="">All Status</option><option value="true">Verified</option><option value="false">Pending</option></select><button class="btn btn-success" onclick="exportUsers()"><i class="fas fa-download"></i> Export</button></div></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usersList"><tr><td colspan="6" class="loading-cell"><div class="spinner"></div><p>Loading users...</p></td></tr></tbody></table></div><div id="usersPagination" class="pagination"></div></div></div>
+
+        <div id="employersSection" class="hidden-section"><div class="employers-card"><div class="card-header"><h3 class="text-lg font-semibold">Registered Employers</h3></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Company</th><th>Contact Person</th><th>Subscription Expiry</th><th>Jobs Posted</th><th>Status</th><th>Actions</th></tr></thead><tbody id="employersList"><tr><td colspan="6" class="loading-cell"><div class="spinner"></div><p>Loading employers...</p></td></tr></tbody></table></div></div></div>
+
+        <div id="jobSeekersSection" class="hidden-section"><div class="jobseekers-card"><div class="card-header"><h3 class="text-lg font-semibold">Job Seekers</h3></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Registered</th><th>Applications</th><th>Status</th></tr></thead><tbody id="jobSeekersList"><tr><td colspan="6" class="loading-cell"><div class="spinner"></div><p>Loading job seekers...</p></td></tr></tbody></table></div></div></div>
+
+        <div id="serviceProvidersSection" class="hidden-section"><div class="providers-card"><div class="card-header"><h3 class="text-lg font-semibold">Service Providers</h3></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Business Name</th><th>Category</th><th>Location</th><th>Connections</th><th>Featured</th><th>Actions</th></tr></thead><tbody id="serviceProvidersList"><tr><td colspan="6" class="loading-cell"><div class="spinner"></div><p>Loading service providers...</p></td></tr></tbody></table></div></div></div>
+
+        <div id="jobsSection" class="hidden-section"><div class="jobs-card"><div class="card-header"><h3 class="text-lg font-semibold">All Job Postings</h3></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Title</th><th>Company</th><th>Location</th><th>Applications</th><th>Status</th><th>Posted Date</th></tr></thead><tbody id="jobsList"><tr><td colspan="6" class="loading-cell"><div class="spinner"></div><p>Loading jobs...</p></td></tr></tbody></table></div></div></div>
+
+        <div id="transactionsSection" class="hidden-section"><div class="transactions-card"><div class="card-header-flex"><h3 class="text-lg font-semibold">Transaction History</h3><div class="filter-group"><input type="date" id="startDate" class="form-control w-auto"><input type="date" id="endDate" class="form-control w-auto"><select id="transactionTypeFilter" class="form-control w-auto" onchange="loadTransactions()"><option value="">All Types</option><option value="employer_registration">Employer Registration</option><option value="employer_subscription">Subscription</option><option value="job_view_requirements">View Requirements</option><option value="employer_details">Employer Details</option><option value="cv_upload">CV Upload</option><option value="service_connection">Service Connection</option></select><button class="btn btn-success" onclick="exportTransactions()"><i class="fas fa-download"></i> Export CSV</button></div></div><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Receipt</th><th>User</th><th>Type</th><th>Amount</th><th>Phone</th><th>Status</th><th>Date</th></tr></thead><tbody id="transactionsList"><tr><td colspan="7" class="loading-cell"><div class="spinner"></div><p>Loading transactions...</p></td></tr></tbody></table></div><div id="transactionsPagination" class="pagination"></div></div></div>
+
+        <div id="reviewsSection" class="hidden-section"><div class="reviews-card"><div class="card-header"><h3 class="text-lg font-semibold">Pending Reviews</h3></div><div id="pendingReviewsList" class="reviews-list"><div class="loading-cell"><div class="spinner"></div><p>Loading reviews...</p></div></div></div></div>
+
+        <div id="logsSection" class="hidden-section"><div class="logs-card"><div class="card-header-flex"><h3 class="text-lg font-semibold">System Logs</h3><div class="filter-group"><select id="logType" class="form-control w-auto"><option value="app">Application Logs</option><option value="error">Error Logs</option><option value="transaction">Transaction Logs</option><option value="access">Access Logs</option></select><input type="number" id="logLines" value="100" class="form-control w-24"><button class="btn btn-primary" onclick="refreshLogs()"><i class="fas fa-sync-alt"></i> Refresh</button><button class="btn btn-danger" onclick="clearLogs()"><i class="fas fa-trash"></i> Clear</button><button class="btn btn-success" onclick="downloadLogs()"><i class="fas fa-download"></i> Download</button></div></div><div id="logStats" class="log-stats-grid"></div><div class="log-viewer"><pre id="logContent" class="log-pre-content">Loading logs...</pre></div></div></div>
+
+        <div id="settingsSection" class="hidden-section"><div class="settings-card"><div class="card-header"><h3 class="text-lg font-semibold">Platform Settings</h3></div><div class="settings-body"><form id="settingsForm"><h4 class="settings-subtitle">Bank Details (for Settlements)</h4><div class="settings-grid"><div><label>Bank Name</label><input type="text" id="bankName" class="form-control" placeholder="e.g., Equity Bank Kenya Limited"></div><div><label>Account Name</label><input type="text" id="bankAccountName" class="form-control" placeholder="Business account name"></div><div><label>Account Number</label><input type="text" id="bankAccountNumber" class="form-control" placeholder="Account number"></div><div><label>Bank Branch</label><input type="text" id="bankBranch" class="form-control" placeholder="Branch location"></div><div><label>SWIFT Code</label><input type="text" id="swiftCode" class="form-control" placeholder="SWIFT/BIC code"></div><div><label>WhatsApp Support Number</label><input type="text" id="whatsappNumber" class="form-control" placeholder="254700000000"></div></div><h4 class="settings-subtitle">Fee Configuration (KES)</h4><div class="settings-grid"><div><label>Employer Entry Fee</label><input type="number" id="employerEntryFee" class="form-control" value="400"></div><div><label>Monthly Subscription</label><input type="number" id="monthlySubscription" class="form-control" value="300"></div><div><label>View Requirements Fee</label><input type="number" id="viewRequirementsFee" class="form-control" value="50"></div><div><label>Employer Details Fee</label><input type="number" id="employerDetailsFee" class="form-control" value="100"></div><div><label>CV Upload Fee</label><input type="number" id="cvUploadFee" class="form-control" value="50"></div><div><label>Service Connection Fee</label><input type="number" id="serviceConnectionFee" class="form-control" value="100"></div></div><div class="settings-footer"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button></div></form></div></div></div>
+    </div>
+</main>
+
+<div id="verificationModal" class="modal"><div class="modal-content"><h3>Verify User</h3><div class="modal-body"><p><strong>Name:</strong> <span id="verifyUserName"></span></p><p><strong>ID Number:</strong> <span id="verifyUserIdNumber"></span></p><p><strong>Role:</strong> <span id="verifyUserRole"></span></p><div><label>ID Photo</label><img id="verifyIdPhoto" class="image-preview" src="" alt="ID Photo"></div><div><label>Facial Scan</label><img id="verifyFaceScan" class="image-preview" src="" alt="Facial Scan"></div><div id="certificateContainer" class="certificate-container hidden"><label>Business Certificate</label><img id="verifyCertificate" class="image-preview" src="" alt="Certificate"></div></div><div class="modal-footer"><button class="btn btn-danger" onclick="closeVerificationModal()">Cancel</button><button class="btn btn-success" onclick="verifyUser(true)">Approve</button><button class="btn btn-warning" onclick="verifyUser(false)">Reject</button></div></div></div>
+
+<script>
+let authToken = localStorage.getItem('authToken');
+let currentUserId = null;
+let currentPage = 1;
+let revenueChart = null;
+let usersChart = null;
+
+function getCurrentUser() { const userStr = localStorage.getItem('user'); return userStr ? JSON.parse(userStr) : null; }
+function logout() { localStorage.removeItem('authToken'); localStorage.removeItem('user'); window.location.href = 'login.html'; }
+function showNotification(message, type) { const toast = document.createElement('div'); toast.className = `toast ${type || 'success'}`; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i> ${message}`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+function showSection(sectionName) {
+    const sections = ['dashboard', 'users', 'employers', 'jobSeekers', 'serviceProviders', 'jobs', 'transactions', 'reviews', 'logs', 'settings'];
+    sections.forEach(s => { const el = document.getElementById(`${s}Section`); if (el) el.classList.add('hidden-section'); });
+    document.getElementById(`${sectionName}Section`).classList.remove('hidden-section');
+    const titles = { dashboard: 'Dashboard', users: 'User Management', employers: 'Employers', jobSeekers: 'Job Seekers', serviceProviders: 'Service Providers', jobs: 'Job Postings', transactions: 'Transactions', reviews: 'Reviews', logs: 'System Logs', settings: 'Settings' };
+    document.getElementById('pageTitle').innerHTML = titles[sectionName] || sectionName;
+    document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`.sidebar-item[data-section="${sectionName}"]`).classList.add('active');
+    if (sectionName === 'users') loadUsers();
+    else if (sectionName === 'employers') loadEmployers();
+    else if (sectionName === 'jobSeekers') loadJobSeekers();
+    else if (sectionName === 'serviceProviders') loadServiceProviders();
+    else if (sectionName === 'jobs') loadAllJobs();
+    else if (sectionName === 'transactions') loadTransactions();
+    else if (sectionName === 'reviews') loadPendingReviews();
+    else if (sectionName === 'logs') refreshLogs();
+    if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+async function loadDashboard() {
+    try {
+        const response = await fetch('/api/admin/dashboard', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success) {
+            const dash = data.dashboard;
+            document.getElementById('totalUsers').innerHTML = dash.users?.total_users || 0;
+            document.getElementById('totalRevenue').innerHTML = `KES ${(dash.revenue?.total_revenue || 0).toLocaleString()}`;
+            document.getElementById('activeJobs').innerHTML = dash.active_jobs || 0;
+            document.getElementById('pendingVerifications').innerHTML = dash.users?.pending_verifications || 0;
+            const tbody = document.getElementById('recentTransactions');
+            if (dash.recent_transactions?.length) {
+                tbody.innerHTML = dash.recent_transactions.map(t => `<tr><td class="px-4 py-2">${t.mpesa_receipt || t.id.substring(0,8)}</td><td class="px-4 py-2">${t.full_name || 'N/A'}</td><td class="px-4 py-2">${t.transaction_type?.replace(/_/g,' ')}</td><td class="px-4 py-2 font-semibold text-green-600">KES ${t.amount}</td><td class="px-4 py-2"><span class="badge ${t.status === 'completed' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td><td class="px-4 py-2">${new Date(t.created_at).toLocaleDateString()}</td></tr>`).join('');
+            } else tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8">No transactions found</td></tr>';
+            if (revenueChart) revenueChart.destroy();
+            if (usersChart) usersChart.destroy();
+            const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
+            if (revenueCtx) revenueChart = new Chart(revenueCtx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'Revenue (KES)', data: [0,0,0,0,0,0,0], borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', tension: 0.4, fill: true }] }, options: { responsive: true } });
+            const usersCtx = document.getElementById('usersChart')?.getContext('2d');
+            if (usersCtx) usersChart = new Chart(usersCtx, { type: 'bar', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'New Users', data: [0,0,0,0,0,0,0], backgroundColor: '#8b5cf6', borderRadius: 5 }] }, options: { responsive: true } });
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function loadUsers(page = 1) {
+    currentPage = page;
+    const role = document.getElementById('userRoleFilter')?.value || '';
+    const isVerified = document.getElementById('userStatusFilter')?.value || '';
+    try {
+        let url = `/api/admin/users?page=${page}&limit=20`;
+        if (role) url += `&role=${role}`;
+        if (isVerified !== '') url += `&is_verified=${isVerified}`;
+        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success) {
+            const tbody = document.getElementById('usersList');
+            if (data.users?.length) {
+                tbody.innerHTML = data.users.map(user => `<tr><td class="px-4 py-2">${escapeHtml(user.full_name)}</td><td class="px-4 py-2">${escapeHtml(user.email)}</td><td class="px-4 py-2">${user.phone}</td><td class="px-4 py-2"><span class="badge badge-info">${user.role?.replace('_',' ')}</span></td><td class="px-4 py-2">${user.is_verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Pending</span>'}</td><td class="px-4 py-2">${!user.is_verified ? `<button class="btn btn-primary btn-sm" onclick="showVerificationModal('${user.id}','${escapeHtml(user.full_name)}','${user.id_number}','${user.role}','${user.id_photo_url}','${user.face_scan_url}','${user.business_certificate_url || ''}')">Verify</button>` : ''}<button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Delete</button></td></tr>`).join('');
+            } else tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8">No users found</td></tr>';
+            const pagination = document.getElementById('usersPagination');
+            if (data.pagination && data.pagination.pages > 1) {
+                let pages = '';
+                for (let i = 1; i <= data.pagination.pages; i++) pages += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadUsers(${i})">${i}</button>`;
+                pagination.innerHTML = pages;
+            } else pagination.innerHTML = '';
+        }
+    } catch(e) { console.error(e); }
+}
+
+function showVerificationModal(userId, name, idNumber, role, idPhotoUrl, faceScanUrl, certificateUrl) {
+    currentUserId = userId;
+    document.getElementById('verifyUserName').innerHTML = name;
+    document.getElementById('verifyUserIdNumber').innerHTML = idNumber;
+    document.getElementById('verifyUserRole').innerHTML = role;
+    document.getElementById('verifyIdPhoto').src = `/${idPhotoUrl}`;
+    document.getElementById('verifyFaceScan').src = `/${faceScanUrl}`;
+    if (certificateUrl && (role === 'employer' || role === 'service_provider')) {
+        document.getElementById('verifyCertificate').src = `/${certificateUrl}`;
+        document.getElementById('certificateContainer').classList.remove('hidden');
+    } else document.getElementById('certificateContainer').classList.add('hidden');
+    document.getElementById('verificationModal').classList.add('active');
+}
+function closeVerificationModal() { document.getElementById('verificationModal').classList.remove('active'); }
+async function verifyUser(approved) {
+    if (!currentUserId) return;
+    try {
+        const response = await fetch(`/api/admin/verify-user/${currentUserId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ is_verified: approved, rejection_reason: approved ? null : 'ID verification failed' }) });
+        const data = await response.json();
+        if (data.success) { showNotification(data.message, 'success'); closeVerificationModal(); loadUsers(currentPage); loadDashboard(); }
+        else showNotification(data.message, 'error');
+    } catch(e) { showNotification('An error occurred', 'error'); }
+}
+async function deleteUser(userId) {
+    if (!confirm('Are you sure?')) return;
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success) { showNotification(data.message, 'success'); loadUsers(currentPage); loadDashboard(); }
+    } catch(e) { showNotification('An error occurred', 'error'); }
+}
+
+async function loadEmployers() {
+    try {
+        const response = await fetch('/api/admin/employers', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success && data.employers?.length) document.getElementById('employersList').innerHTML = data.employers.map(emp => `<tr><td class="px-4 py-2 font-medium">${escapeHtml(emp.company_name)}</td><td class="px-4 py-2">${escapeHtml(emp.full_name)}<br><small class="text-gray-500">${emp.email}</small></td><td class="px-4 py-2">${new Date(emp.subscription_expiry).toLocaleDateString()}</td><td class="px-4 py-2">${emp.total_jobs_posted || 0}</td><td class="px-4 py-2">${emp.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td><td class="px-4 py-2"><button class="btn btn-primary btn-sm">View</button></td></tr>`).join('');
+        else document.getElementById('employersList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No employers found</td></tr>';
+    } catch(e) { console.error(e); }
+}
+
+async function loadJobSeekers() {
+    try {
+        const response = await fetch('/api/admin/users?role=job_seeker', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success && data.users?.length) document.getElementById('jobSeekersList').innerHTML = data.users.map(user => `<tr><td class="px-4 py-2">${escapeHtml(user.full_name)}</td><td class="px-4 py-2">${escapeHtml(user.email)}</td><td class="px-4 py-2">${user.phone}</td><td class="px-4 py-2">${new Date(user.created_at).toLocaleDateString()}</td><td class="px-4 py-2">0</td><td class="px-4 py-2">${user.is_verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Pending</span>'}</td></tr>`).join('');
+        else document.getElementById('jobSeekersList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No job seekers found</td></tr>';
+    } catch(e) { console.error(e); }
+}
+
+async function loadServiceProviders() {
+    try {
+        const response = await fetch('/api/admin/service-providers', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success && data.providers?.length) document.getElementById('serviceProvidersList').innerHTML = data.providers.map(p => `<tr><td class="px-4 py-2 font-medium">${escapeHtml(p.business_name)}</td><td class="px-4 py-2">${escapeHtml(p.service_category)}</td><td class="px-4 py-2">${escapeHtml(p.location)}</td><td class="px-4 py-2">${p.total_connections || 0}</td><td class="px-4 py-2">${p.is_featured ? '<span class="badge badge-success">Featured</span>' : '<span class="badge badge-warning">No</span>'}</td><td class="px-4 py-2"><button class="btn btn-primary btn-sm" onclick="toggleFeatured(\''+p.user_id+'\','+(!p.is_featured)+')">${p.is_featured ? 'Unfeature' : 'Feature'}</button></td></tr>`).join('');
+        else document.getElementById('serviceProvidersList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No service providers found</td></tr>';
+    } catch(e) { console.error(e); }
+}
+async function toggleFeatured(providerId, featured) {
+    try {
+        const response = await fetch(`/api/admin/service-providers/${providerId}/feature`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ is_featured: featured }) });
+        const data = await response.json();
+        if (data.success) { showNotification(data.message, 'success'); loadServiceProviders(); }
+    } catch(e) { showNotification('An error occurred', 'error'); }
+}
+
+async function loadAllJobs() {
+    try {
+        const response = await fetch('/api/admin/jobs', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success && data.jobs?.length) document.getElementById('jobsList').innerHTML = data.jobs.map(job => `<tr><td class="px-4 py-2">${escapeHtml(job.title)}</td><td class="px-4 py-2">${escapeHtml(job.company_name)}</td><td class="px-4 py-2">${escapeHtml(job.location || 'Remote')}</td><td class="px-4 py-2">${job.applications_count || 0}</td><td class="px-4 py-2">${job.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td><td class="px-4 py-2">${new Date(job.posted_at).toLocaleDateString()}</td></tr>`).join('');
+        else document.getElementById('jobsList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No jobs found</td></tr>';
+    } catch(e) { console.error(e); }
+}
+
+async function loadTransactions(page = 1) {
+    const startDate = document.getElementById('startDate')?.value || '';
+    const endDate = document.getElementById('endDate')?.value || '';
+    const transactionType = document.getElementById('transactionTypeFilter')?.value || '';
+    try {
+        let url = `/api/admin/transactions?page=${page}&limit=50`;
+        if (startDate) url += `&start_date=${startDate}`;
+        if (endDate) url += `&end_date=${endDate}`;
+        if (transactionType) url += `&transaction_type=${transactionType}`;
+        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success) {
+            const tbody = document.getElementById('transactionsList');
+            if (data.transactions?.length) tbody.innerHTML = data.transactions.map(t => `<tr><td class="px-4 py-2">${t.mpesa_receipt || t.id.substring(0,8)}</td><td class="px-4 py-2">${t.full_name || 'N/A'}</td><td class="px-4 py-2">${t.transaction_type?.replace(/_/g,' ')}</td><td class="px-4 py-2 font-semibold">KES ${t.amount.toLocaleString()}</td><td class="px-4 py-2">${t.phone_number || '-'}</td><td class="px-4 py-2"><span class="badge ${t.status === 'completed' ? 'badge-success' : t.status === 'pending' ? 'badge-warning' : 'badge-danger'}">${t.status}</span></td><td class="px-4 py-2">${new Date(t.created_at).toLocaleString()}</td></tr>`).join('');
+            else tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8">No transactions found</td></tr>';
+            const pagination = document.getElementById('transactionsPagination');
+            if (data.pagination && data.pagination.pages > 1) {
+                let pages = '';
+                for (let i = 1; i <= data.pagination.pages; i++) pages += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadTransactions(${i})">${i}</button>`;
+                pagination.innerHTML = pages;
+            } else pagination.innerHTML = '';
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function loadPendingReviews() {
+    try {
+        const response = await fetch('/api/admin/reviews/pending', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        const container = document.getElementById('pendingReviewsList');
+        if (data.success && data.reviews?.length) container.innerHTML = data.reviews.map(review => `<div class="review-item"><div class="review-header"><div class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div><span class="review-user">${escapeHtml(review.user_name)}</span><span class="review-date">${new Date(review.created_at).toLocaleString()}</span></div><p class="review-comment">${escapeHtml(review.comment)}</p><p class="review-entity">Entity: ${review.entity_type}</p><div class="review-actions"><button class="btn btn-success" onclick="approveReview('${review.id}', true)">Approve</button><button class="btn btn-danger" onclick="approveReview('${review.id}', false)">Reject</button></div></div>`).join('');
+        else container.innerHTML = '<div class="text-center py-8 text-gray-500">No pending reviews</div>';
+    } catch(e) { console.error(e); }
+}
+async function approveReview(reviewId, approved) {
+    try {
+        const response = await fetch(`/api/admin/reviews/${reviewId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ is_approved: approved }) });
+        const data = await response.json();
+        if (data.success) { showNotification(data.message, 'success'); loadPendingReviews(); }
+    } catch(e) { showNotification('An error occurred', 'error'); }
+}
+
+async function refreshLogs() {
+    const logType = document.getElementById('logType')?.value || 'app';
+    const lines = document.getElementById('logLines')?.value || 100;
+    try {
+        const response = await fetch(`/api/admin/logs?type=${logType}&lines=${lines}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success && data.logs?.length) document.getElementById('logContent').innerHTML = data.logs.map(log => `<div class="log-line log-${log.level?.toLowerCase() || 'info'}">[${log.timestamp}] [${log.level}] ${escapeHtml(log.message)}</div>`).join('');
+        else document.getElementById('logContent').innerHTML = '<div class="log-line">No logs found</div>';
+        const statsResponse = await fetch('/api/admin/logs/stats', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const statsData = await statsResponse.json();
+        if (statsData.success && statsData.stats) document.getElementById('logStats').innerHTML = Object.entries(statsData.stats).map(([name,stat]) => `<div class="log-stat-card"><div class="log-stat-name">${name.toUpperCase()}</div><div class="log-stat-size">${stat.sizeFormatted}</div><div class="log-stat-date">Modified: ${stat.modified ? new Date(stat.modified).toLocaleString() : 'N/A'}</div></div>`).join('');
+    } catch(e) { showNotification('Failed to load logs', 'error'); }
+}
+async function clearLogs() {
+    if (!confirm('Clear selected log file?')) return;
+    const logType = document.getElementById('logType')?.value || 'app';
+    try {
+        const response = await fetch(`/api/admin/logs/clear?type=${logType}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success) { showNotification(data.message, 'success'); refreshLogs(); }
+    } catch(e) { showNotification('Failed to clear logs', 'error'); }
+}
+function downloadLogs() {
+    const logType = document.getElementById('logType')?.value || 'app';
+    window.open(`/api/admin/logs/download?type=${logType}&token=${authToken}`, '_blank');
+}
+
+async function loadSettings() {
+    try {
+        const response = await fetch('/api/admin/settings', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const data = await response.json();
+        if (data.success) {
+            const s = data.settings;
+            document.getElementById('bankName').value = s.bank_name || '';
+            document.getElementById('bankAccountName').value = s.bank_account_name || '';
+            document.getElementById('bankAccountNumber').value = s.bank_account_number || '';
+            document.getElementById('bankBranch').value = s.bank_branch || '';
+            document.getElementById('swiftCode').value = s.bank_swift_code || '';
+            document.getElementById('whatsappNumber').value = s.contact_whatsapp || '';
+            document.getElementById('employerEntryFee').value = s.employer_entry_fee || 400;
+            document.getElementById('monthlySubscription').value = s.employer_monthly_fee || 300;
+            document.getElementById('viewRequirementsFee').value = s.job_requirements_fee || 50;
+            document.getElementById('employerDetailsFee').value = s.employer_details_fee || 100;
+            document.getElementById('cvUploadFee').value = s.cv_upload_fee || 50;
+            document.getElementById('serviceConnectionFee').value = s.service_connection_fee || 100;
+        }
+    } catch(e) { console.error(e); }
+}
+document.getElementById('settingsForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const settings = {
+        bank_name: document.getElementById('bankName').value,
+        bank_account_name: document.getElementById('bankAccountName').value,
+        bank_account_number: document.getElementById('bankAccountNumber').value,
+        bank_branch: document.getElementById('bankBranch').value,
+        bank_swift_code: document.getElementById('swiftCode').value,
+        contact_whatsapp: document.getElementById('whatsappNumber').value,
+        employer_entry_fee: document.getElementById('employerEntryFee').value,
+        employer_monthly_fee: document.getElementById('monthlySubscription').value,
+        job_requirements_fee: document.getElementById('viewRequirementsFee').value,
+        employer_details_fee: document.getElementById('employerDetailsFee').value,
+        cv_upload_fee: document.getElementById('cvUploadFee').value,
+        service_connection_fee: document.getElementById('serviceConnectionFee').value
+    };
+    try {
+        const response = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ settings }) });
+        const data = await response.json();
+        if (data.success) showNotification('Settings saved successfully', 'success');
+        else showNotification(data.message, 'error');
+    } catch(e) { showNotification('Failed to save settings', 'error'); }
+});
+
+async function exportUsers() {
+    try {
+        const response = await fetch('/api/admin/export/users', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showNotification('Export completed', 'success');
+    } catch(e) { showNotification('Export failed', 'error'); }
+}
+async function exportTransactions() {
+    try {
+        const response = await fetch('/api/admin/export/transactions', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showNotification('Export completed', 'success');
+    } catch(e) { showNotification('Export failed', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = getCurrentUser();
+    if (!user || user.role !== 'admin') { window.location.href = 'login.html'; return; }
+    document.getElementById('adminName').innerHTML = user.full_name || 'Admin';
+    await loadDashboard();
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+    await loadSettings();
+});
+</script>
+</body>
+</html>

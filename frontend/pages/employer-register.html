@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Registration - Kenya Services Access Centre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .nav-brand h1 {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #4a5568;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #4a5568;
+        }
+
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: white;
+            padding: 20px;
+            gap: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .mobile-menu a {
+            text-decoration: none;
+            color: #4a5568;
+            padding: 10px 0;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        /* Main Container */
+        .register-wrapper {
+            padding-top: 100px;
+            padding-bottom: 60px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-container {
+            max-width: 700px;
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        .register-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .register-header h2 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .register-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Steps */
+        .register-step {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .register-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .register-step h3 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input, .form-textarea, .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+            background: white;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .form-row button {
+            flex: 1;
+        }
+
+        /* Buttons */
+        .btn-primary, .btn-gray, .btn-success {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+            transform: translateY(-2px);
+        }
+
+        .btn-gray {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-gray:hover {
+            background: #cbd5e0;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-area i {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .upload-area p {
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint, .password-hint, .payment-hint {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 8px;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .file-preview {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            color: #667eea;
+        }
+
+        .hidden-preview {
+            display: none;
+        }
+
+        .hidden-trigger {
+            display: none;
+        }
+
+        /* Payment Summary */
+        .payment-summary {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .payment-summary h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a202c;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .payment-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0 0;
+            font-weight: bold;
+            font-size: 18px;
+            color: #1a202c;
+        }
+
+        /* Success Content */
+        .success-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: #38a169;
+            margin-bottom: 20px;
+        }
+
+        .success-content h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            border: none;
+        }
+
+        .success-content p {
+            color: #718096;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a202c;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: #a0aec0;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #38a169;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .toast.error {
+            background: #e53e3e;
+        }
+
+        .toast.warning {
+            background: #ed8936;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .register-header h2 {
+                font-size: 22px;
+            }
+            .register-step {
+                padding: 20px;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .toast {
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Kenya Services Access Centre</h1>
+            </div>
+            <div class="nav-links">
+                <a href="../index.html">Home</a>
+                <a href="login.html">Login</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="../index.html">Home</a>
+            <a href="login.html">Login</a>
+        </div>
+    </nav>
+
+    <div class="register-wrapper">
+        <div class="register-container">
+            <div class="register-card">
+                <div class="register-header">
+                    <h2>Employer Registration</h2>
+                    <p>Create an account to start hiring</p>
+                </div>
+
+                <!-- Step 1: Account Information -->
+                <div id="step1" class="register-step active">
+                    <h3>Step 1: Account Information</h3>
+                    <form id="step1Form">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="fullName" required class="form-input" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address *</label>
+                            <input type="email" id="email" required class="form-input" placeholder="you@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" id="phone" required class="form-input" placeholder="0712345678">
+                        </div>
+                        <div class="form-group">
+                            <label>ID Number *</label>
+                            <input type="text" id="idNumber" required class="form-input" placeholder="8-digit ID number">
+                        </div>
+                        <div class="form-group">
+                            <label>Password *</label>
+                            <input type="password" id="password" required class="form-input" placeholder="Create a password">
+                            <p class="password-hint">Minimum 6 characters</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password *</label>
+                            <input type="password" id="confirmPassword" required class="form-input" placeholder="Confirm your password">
+                        </div>
+                        <button type="submit" class="btn-primary">Next: Company Details →</button>
+                    </form>
+                </div>
+
+                <!-- Step 2: Company Details -->
+                <div id="step2" class="register-step">
+                    <h3>Step 2: Company Information</h3>
+                    <form id="step2Form">
+                        <div class="form-group">
+                            <label>Company Name *</label>
+                            <input type="text" id="companyName" required class="form-input" placeholder="Your business name">
+                        </div>
+                        <div class="form-group">
+                            <label>Business Registration Number</label>
+                            <input type="text" id="businessRegNumber" class="form-input" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label>Company Address</label>
+                            <textarea id="companyAddress" rows="3" class="form-textarea" placeholder="Your business address"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <button type="button" onclick="goToStep(1)" class="btn-gray">← Back</button>
+                            <button type="submit" class="btn-primary">Next: Verification →</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 3: Document Verification -->
+                <div id="step3" class="register-step">
+                    <h3>Step 3: Identity Verification</h3>
+                    <form id="step3Form">
+                        <div class="form-group">
+                            <label>Upload ID Photo (Original) *</label>
+                            <div class="upload-area" id="idUploadArea">
+                                <i class="fas fa-id-card"></i>
+                                <p>Click to upload your ID photo</p>
+                                <p class="upload-hint">JPEG, PNG (Max 5MB) - Original photo required, no screenshots</p>
+                            </div>
+                            <input type="file" id="idPhoto" accept="image/jpeg,image/png,image/jpg" class="hidden-input">
+                            <img id="idPreview" class="image-preview hidden-preview" alt="ID Preview">
+                        </div>
+                        <div class="form-group">
+                            <label>Facial Scan (Live Photo) *</label>
+                            <div class="upload-area" id="faceUploadArea">
+                                <i class="fas fa-camera"></i>
+                                <p>Click to take a facial scan</p>
+                                <p class="upload-hint">Take a clear photo of your face (JPEG, PNG, Max 5MB)</p>
+                            </div>
+                            <input type="file" id="faceScan" accept="image/jpeg,image/png,image/jpg" class="hidden-input">
+                            <img id="facePreview" class="image-preview hidden-preview" alt="Face Preview">
+                        </div>
+                        <div class="form-group">
+                            <label>Business Certificate (Optional)</label>
+                            <div class="upload-area" id="certUploadArea">
+                                <i class="fas fa-certificate"></i>
+                                <p>Click to upload business certificate</p>
+                                <p class="upload-hint">JPEG, PNG, PDF (Max 5MB)</p>
+                            </div>
+                            <input type="file" id="certificate" accept="image/jpeg,image/png,image/jpg,application/pdf" class="hidden-input">
+                            <div id="certPreview" class="file-preview hidden-preview"></div>
+                        </div>
+                        <div class="form-row">
+                            <button type="button" onclick="goToStep(2)" class="btn-gray">← Back</button>
+                            <button type="submit" class="btn-primary">Submit for Verification →</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 4: Payment -->
+                <div id="step4" class="register-step">
+                    <h3>Step 4: Payment</h3>
+                    <div class="payment-summary">
+                        <h4>Registration Fees</h4>
+                        <div class="payment-item">
+                            <span>Entry Fee:</span>
+                            <span>KES 400</span>
+                        </div>
+                        <div class="payment-item">
+                            <span>First Month Subscription:</span>
+                            <span>KES 300</span>
+                        </div>
+                        <div class="payment-total">
+                            <span>Total Due:</span>
+                            <span>KES 700</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>M-PESA Phone Number *</label>
+                        <input type="tel" id="paymentPhone" class="form-input" placeholder="0712345678">
+                        <p class="payment-hint">You will receive an STK Push prompt on your phone to complete payment</p>
+                    </div>
+                    <div class="form-row">
+                        <button type="button" onclick="goToStep(3)" class="btn-gray">← Back</button>
+                        <button id="payButton" class="btn-success">Pay KES 700 →</button>
+                    </div>
+                </div>
+
+                <!-- Step 5: Success -->
+                <div id="step5" class="register-step">
+                    <div class="success-content">
+                        <i class="fas fa-check-circle success-icon"></i>
+                        <h3>Registration Successful!</h3>
+                        <p>Your account has been created and is pending admin verification.</p>
+                        <p>You will receive an email once your account is verified.</p>
+                        <button onclick="window.location.href='login.html'" class="btn-primary" style="margin-top: 20px;">Go to Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 Kenya Services Access Centre. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let currentStep = 1;
+        let userId = null;
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('active');
+        });
+
+        function goToStep(step) {
+            document.querySelectorAll('.register-step').forEach((el, index) => {
+                el.classList.remove('active');
+                if (index + 1 === step) el.classList.add('active');
+            });
+            currentStep = step;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setupUpload(triggerId, inputId, previewId, isImage) {
+            const trigger = document.getElementById(triggerId);
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            
+            if (!trigger || !input) return;
+            
+            trigger.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (isImage) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            if (preview) {
+                                preview.src = event.target.result;
+                                preview.classList.remove('hidden-preview');
+                                trigger.classList.add('hidden-trigger');
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        if (preview) {
+                            preview.innerHTML = '<i class="fas fa-file-pdf"></i> ' + file.name;
+                            preview.classList.remove('hidden-preview');
+                            trigger.classList.add('hidden-trigger');
+                        }
+                    }
+                }
+            });
+        }
+
+        setupUpload('idUploadArea', 'idPhoto', 'idPreview', true);
+        setupUpload('faceUploadArea', 'faceScan', 'facePreview', true);
+        setupUpload('certUploadArea', 'certificate', 'certPreview', false);
+
+        function showNotification(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type || 'success'}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function showLoading(show) {
+            let overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'loadingOverlay';
+                    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999';
+                    overlay.innerHTML = '<div style="background:white;padding:30px;border-radius:20px;text-align:center;"><div class="spinner"></div><p style="margin-top:15px;color:#4a5568;">Processing...</p></div>';
+                    document.body.appendChild(overlay);
+                }
+            } else {
+                if (overlay) overlay.remove();
+            }
+        }
+
+        // Step 1: User Registration
+        document.getElementById('step1Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        full_name: document.getElementById('fullName').value,
+                        id_number: document.getElementById('idNumber').value,
+                        password: password,
+                        role: 'employer'
+                    })
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    userId = data.user.id;
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    goToStep(2);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('Registration failed. Please try again.', 'error');
+            }
+        });
+
+        // Step 2: Company Details
+        document.getElementById('step2Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            showLoading(true);
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('http://localhost:5000/api/employers/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        company_name: document.getElementById('companyName').value,
+                        business_reg_number: document.getElementById('businessRegNumber').value,
+                        company_address: document.getElementById('companyAddress').value
+                    })
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    goToStep(3);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('Failed to save company details', 'error');
+            }
+        });
+
+        // Step 3: Document Verification
+        document.getElementById('step3Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const idPhoto = document.getElementById('idPhoto').files[0];
+            const faceScan = document.getElementById('faceScan').files[0];
+            
+            if (!idPhoto || !faceScan) {
+                showNotification('Please upload both ID photo and facial scan', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('userId', userId);
+            formData.append('id_photo', idPhoto);
+            formData.append('face_scan', faceScan);
+            
+            if (document.getElementById('certificate').files[0]) {
+                formData.append('certificate', document.getElementById('certificate').files[0]);
+            }
+            
+            showLoading(true);
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('http://localhost:5000/api/auth/verify-id', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    if (data.isVerified) {
+                        goToStep(4);
+                    } else {
+                        showNotification('ID verification failed. Please upload original ID photo (not a screenshot).', 'error');
+                    }
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('Verification failed', 'error');
+            }
+        });
+
+        // Step 4: Payment
+        document.getElementById('payButton').addEventListener('click', async () => {
+            const phoneNumber = document.getElementById('paymentPhone').value;
+            
+            const phoneRegex = /^(07|2547|7)\d{8}$/;
+            if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+                showNotification('Please enter a valid phone number (e.g., 0712345678)', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('http://localhost:5000/api/payments/mpesa/stkpush', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber,
+                        amount: 700,
+                        transactionType: 'employer_registration',
+                        userId: userId,
+                        metadata: { employerId: userId }
+                    })
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    showNotification('STK Push sent! Check your phone and enter M-PESA PIN.', 'success');
+                    goToStep(5);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showNotification('Payment initiation failed', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

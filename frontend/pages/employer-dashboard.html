@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Dashboard - Kenya Services Access Centre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Kenya Services Access Centre</h1>
+            </div>
+            <div class="nav-links">
+                <a href="../index.html">Home</a>
+                <a href="employer-dashboard.html" class="active">Dashboard</a>
+                <span id="userName"></span>
+                <button onclick="logout()" class="btn-danger">Logout</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="../index.html">Home</a>
+            <a href="employer-dashboard.html">Dashboard</a>
+            <button onclick="logout()" class="btn-danger">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Employer Dashboard</h1>
+            <button onclick="showPostJobModal()" class="btn-primary">
+                <i class="fas fa-plus"></i> Post New Job
+            </button>
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="dashboard-card">
+            <h2>Subscription Status</h2>
+            <div class="subscription-info">
+                <div>
+                    <p><strong>Status:</strong> <span id="subscriptionStatus">Loading...</span></p>
+                    <p><strong>Time Remaining:</strong> <span id="subscriptionTimer">-</span></p>
+                    <div id="subscriptionCountdown"></div>
+                </div>
+                <button id="renewSubscriptionBtn" class="btn-success">Renew Subscription (KES 300)</button>
+            </div>
+        </div>
+
+        <!-- Posted Jobs -->
+        <div class="dashboard-card">
+            <h2>Your Posted Jobs</h2>
+            <div id="jobsList">
+                <div class="loading-placeholder">Loading jobs...</div>
+            </div>
+        </div>
+
+        <!-- Applications Received -->
+        <div class="dashboard-card">
+            <h2>Applications Received</h2>
+            <div id="applicationsList">
+                <div class="loading-placeholder">Loading applications...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Job Modal -->
+    <div id="postJobModal" class="modal">
+        <div class="modal-content">
+            <h3>Post a New Job</h3>
+            <form id="postJobForm">
+                <div>
+                    <label>Job Title *</label>
+                    <input type="text" id="jobTitle" required class="form-input">
+                </div>
+                <div>
+                    <label>Job Description *</label>
+                    <textarea id="jobDescription" rows="4" required class="form-textarea"></textarea>
+                </div>
+                <div>
+                    <label>Requirements *</label>
+                    <textarea id="jobRequirements" rows="4" required class="form-textarea"></textarea>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Location</label>
+                        <input type="text" id="jobLocation" class="form-input" placeholder="e.g., Nairobi, Kisumu">
+                    </div>
+                    <div>
+                        <label>Salary Range</label>
+                        <input type="text" id="salaryRange" class="form-input" placeholder="e.g., 30,000 - 50,000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Employment Type</label>
+                        <select id="employmentType" class="form-control">
+                            <option value="full-time">Full-time</option>
+                            <option value="part-time">Part-time</option>
+                            <option value="contract">Contract</option>
+                            <option value="internship">Internship</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Application Deadline</label>
+                        <input type="date" id="deadline" class="form-input">
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeModal('postJobModal')" class="btn-gray">Cancel</button>
+                    <button type="submit" class="btn-primary">Post Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/employer.js"></script>
+</body>
+</html>

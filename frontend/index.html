@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenya Services Access Centre - Connect Employers, Job Seekers & Service Providers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Kenya Services Access Centre</h1>
+            </div>
+            <div class="nav-links">
+                <a href="#employers">Employers</a>
+                <a href="#job-seekers">Job Seekers</a>
+                <a href="#services">Services</a>
+                <a href="#reviews">Reviews</a>
+                <a href="pages/login.html" class="btn-primary">Login</a>
+                <a href="pages/employer-dashboard.html" class="btn-success">Post a Job</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#employers">Employers</a>
+            <a href="#job-seekers">Job Seekers</a>
+            <a href="#services">Services</a>
+            <a href="#reviews">Reviews</a>
+            <a href="pages/login.html" class="btn-primary">Login</a>
+            <a href="pages/employer-dashboard.html" class="btn-success">Post a Job</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1 class="hero-title">Connect. Hire. Grow.</h1>
+            <p class="hero-subtitle">Kenya's Premier Platform Connecting Employers, Job Seekers, and Service Providers</p>
+            <div class="hero-buttons">
+                <a href="#employers" class="btn-white">Post a Job</a>
+                <a href="#job-seekers" class="btn-outline-white">Find Work</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Employers Section -->
+    <section id="employers" class="section-white">
+        <div class="container">
+            <div class="section-header">
+                <h2>For Employers</h2>
+                <p>Find the best talent for your organization</p>
+            </div>
+            <div class="card-grid">
+                <div class="card card-hover">
+                    <i class="fas fa-user-check card-icon-purple"></i>
+                    <h3>Verified Talent</h3>
+                    <p>Access pre-verified candidates with authenticated credentials</p>
+                </div>
+                <div class="card card-hover">
+                    <i class="fas fa-chart-line card-icon-purple"></i>
+                    <h3>Smart Matching</h3>
+                    <p>Our AI matches you with the most qualified candidates</p>
+                </div>
+                <div class="card card-hover">
+                    <i class="fas fa-shield-alt card-icon-purple"></i>
+                    <h3>Secure Platform</h3>
+                    <p>All transactions and data are encrypted and secure</p>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="pages/employer-register.html" class="btn-purple">Start Hiring Today</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Job Seekers Section -->
+    <section id="job-seekers" class="section-gray">
+        <div class="container">
+            <div class="section-header">
+                <h2>For Job Seekers</h2>
+                <p>Find your dream job with just a few clicks</p>
+            </div>
+            <div class="card-grid">
+                <div class="card-white card-hover">
+                    <i class="fas fa-search card-icon-green"></i>
+                    <h3>KES 50 - View Requirements</h3>
+                    <p>See full job requirements before applying</p>
+                </div>
+                <div class="card-white card-hover">
+                    <i class="fas fa-building card-icon-green"></i>
+                    <h3>KES 100 - Get Employer Details</h3>
+                    <p>Access employer contact information</p>
+                </div>
+                <div class="card-white card-hover">
+                    <i class="fas fa-file-upload card-icon-green"></i>
+                    <h3>KES 50 - Upload CV</h3>
+                    <p>Submit your application directly to employers</p>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="pages/job-search.html" class="btn-green">Find Jobs Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="section-white">
+        <div class="container">
+            <div class="section-header">
+                <h2>For Service Seekers</h2>
+                <p>Connect with trusted service providers across Kenya</p>
+            </div>
+            <div class="service-grid">
+                <div class="service-card">
+                    <i class="fas fa-wrench service-icon-blue"></i>
+                    <p>Plumbers</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-bolt service-icon-yellow"></i>
+                    <p>Electricians</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-laptop service-icon-purple"></i>
+                    <p>IT Services</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-car service-icon-red"></i>
+                    <p>Mechanics</p>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="pages/services.html" class="btn-blue">Find a Service Provider</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section id="reviews" class="section-gray">
+        <div class="container">
+            <div class="section-header">
+                <h2>What Our Users Say</h2>
+                <p>Real experiences from real people</p>
+            </div>
+            <div class="reviews-grid" id="reviews-container">
+                <div class="text-center">Loading reviews...</div>
+            </div>
+            <div class="text-center">
+                <button class="btn-purple-outline" onclick="showReviewModal()">Leave a Review</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div>
+                    <h3>Kenya Services</h3>
+                    <p>Connecting Kenya's workforce and businesses since 2024.</p>
+                </div>
+                <div>
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#employers">For Employers</a></li>
+                        <li><a href="#job-seekers">For Job Seekers</a></li>
+                        <li><a href="#services">For Services</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fab fa-whatsapp"></i> WhatsApp: +254 700 000000</li>
+                        <li><i class="far fa-envelope"></i> support@kenyaservices.co.ke</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Kenya Services Access Centre. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Button -->
+    <div class="whatsapp-float">
+        <a href="https://wa.me/254700000000?text=Hello%2C%20I%20need%20help%20with%20Kenya%20Services%20Access%20Centre" target="_blank">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <h3>Leave a Review</h3>
+            <div>
+                <label>Rating</label>
+                <div class="rating-stars" id="ratingStars">
+                    <i class="fas fa-star" data-rating="1"></i>
+                    <i class="fas fa-star" data-rating="2"></i>
+                    <i class="fas fa-star" data-rating="3"></i>
+                    <i class="fas fa-star" data-rating="4"></i>
+                    <i class="fas fa-star" data-rating="5"></i>
+                </div>
+            </div>
+            <div>
+                <label>Your Name</label>
+                <input type="text" id="reviewerName" class="form-input">
+            </div>
+            <div>
+                <label>Your Review</label>
+                <textarea id="reviewComment" rows="4" class="form-textarea"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeReviewModal()" class="btn-gray">Cancel</button>
+                <button onclick="submitReview()" class="btn-purple">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        let selectedRating = 0;
+        
+        document.querySelectorAll('#ratingStars i').forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.dataset.rating);
+                updateStarDisplay(selectedRating);
+            });
+        });
+        
+        function updateStarDisplay(rating) {
+            document.querySelectorAll('#ratingStars i').forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                if (starRating <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        function showReviewModal() {
+            document.getElementById('reviewModal').classList.add('active');
+        }
+        
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('active');
+            document.getElementById('reviewerName').value = '';
+            document.getElementById('reviewComment').value = '';
+            selectedRating = 0;
+            updateStarDisplay(0);
+        }
+        
+        async function submitReview() {
+            const name = document.getElementById('reviewerName').value;
+            const comment = document.getElementById('reviewComment').value;
+            
+            if (!name || !comment || selectedRating === 0) {
+                alert('Please fill in all fields and select a rating');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_name: name,
+                        rating: selectedRating,
+                        comment: comment,
+                        entity_type: 'platform'
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Thank you for your review! It will be visible after admin approval.');
+                    closeReviewModal();
+                    location.reload();
+                } else {
+                    alert('Failed to submit review. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+        
+        async function loadReviews() {
+            try {
+                const response = await fetch('/api/reviews');
+                const data = await response.json();
+                
+                const container = document.getElementById('reviews-container');
+                if (data.success && data.reviews && data.reviews.length > 0) {
+                    container.innerHTML = data.reviews.map(review => `
+                        <div class="review-card">
+                            <div class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div>
+                            <p class="review-text">"${review.comment}"</p>
+                            <div class="review-author">
+                                <p class="review-name">${review.user_name}</p>
+                                <p class="review-date">${new Date(review.created_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center">No reviews yet. Be the first to leave a review!</div>';
+                }
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+            }
+        }
+        
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('active');
+        });
+        
+        loadReviews();
+    </script>
+</body>
+</html>
