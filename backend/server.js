@@ -1,5 +1,41 @@
 const express = require('express');
 const cors = require('cors');
+
+// Explicitly allow your frontend origin
+const allowedOrigins = ['https://kenyaservices-accesscentre-emph.onrender.com'];
+
+const corsOptions = {
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+    exposedHeaders: ['Content-Length'],
+    optionsSuccessStatus: 200
+};
+// Manual CORS headers - ensures Access-Control-Allow-Origin is always set
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://kenyaservices-accesscentre-emph.onrender.com');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const { Pool } = require('pg');
