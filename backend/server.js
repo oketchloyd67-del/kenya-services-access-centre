@@ -1,10 +1,43 @@
 const express = require('express');
-// At the top of server.js, right after requiring express
-const express = require('express');
 const cors = require('cors');
-const app = express();
+const dotenv = require('dotenv');
+const { Pool } = require('pg');
+const cron = require('node-cron');
+const http = require('http');
+const socketIo = require('socket.io');
+const session = require('express-session');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
 
-// ===== CORS CONFIGURATION (MUST BE HERE, BEFORE ROUTES) =====
+dotenv.config();
+
+// ===== IMPORT ROUTES (MUST BE BEFORE app.use) =====
+const authRoutes = require('./routes/auth');
+const employerRoutes = require('./routes/employers');
+const jobRoutes = require('./routes/jobs');
+const serviceRoutes = require('./routes/services');
+const paymentRoutes = require('./routes/payments');
+const adminRoutes = require('./routes/admin');
+
+// ===== INITIALIZE APP =====
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: 'https://kenyaservices-accesscentre-emph.onrender.com',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        credentials: true
+    }
+});
+
+// ===== RATE LIMITING =====
+const limiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    message: { success: false, message: 'Too many requests, please try again later.' }
+});
+
+// ===== MANUAL CORS HEADERS (BEFORE ANY ROUTES) =====
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', 'https://kenyaservices-accesscentre-emph.onrender.com');
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -17,65 +50,24 @@ app.use((req, res, next) => {
     next();
 });
 
+// ===== CORS MIDDLEWARE =====
 app.use(cors({
     origin: 'https://kenyaservices-accesscentre-emph.onrender.com',
-    credentials: true
-}));
-
-// THEN your other middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// THEN your routes
-app.use('/api/auth', authRoutes);
-// ... other routes
-const helmet = require('helmet');
-const dotenv = require('dotenv');
-const { Pool } = require('pg');
-const cron = require('node-cron');
-const http = require('http');
-const socketIo = require('socket.io');
-const session = require('express-session');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-
-dotenv.config();
-
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
-    cors: {
-        origin: ['http://localhost:3000', 'https://kenyaservices-accesscentre-emph.onrender.com','https://kenyaservices-accesscentre-emph.onrender.com'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        credentials: true
-    }
-});
-
-const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    message: { success: false, message: 'Too many requests, please try again later.' }
-});
-
-app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-    contentSecurityPolicy: false
-}));
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://your-frontend-url.onrender.com'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
     optionsSuccessStatus: 200
 }));
 
-// Handle preflight requests explicitly
-app.options('*', cors());
+// ===== BODY PARSERS =====
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
+
+// ===== STATIC FILES =====
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// ===== SESSION CONFIGURATION =====
 app.use(session({
     secret: process.env.SESSION_SECRET || 'default_secret',
     resave: false,
@@ -87,15 +79,17 @@ app.use(session({
     }
 }));
 
+// ===== DATABASE CONNECTION =====
 const pool = new Pool({
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT),
+    port: parseInt(process.env.DB_PORT) || 5432,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ssl: {
-        rejectUnauthorized: false  // Required for Render PostgreSQL
-    }
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
 
 pool.connect((err, client, release) => {
@@ -111,21 +105,7 @@ pool.connect((err, client, release) => {
 app.set('db', pool);
 app.set('io', io);
 
-const authRoutes = require('./routes/auth');
-const employerRoutes = require('./routes/employers');
-const jobRoutes = require('./routes/jobs');
-const serviceRoutes = require('./routes/services');
-const paymentRoutes = require('./routes/payments');
-const adminRoutes = require('./routes/admin');
-
-// List all registered routes (for debugging)
-console.log('Registered routes:');
-app._router.stack.forEach((r) => {
-    if (r.route && r.route.path) {
-        console.log(`${Object.keys(r.route.methods)} ${r.route.path}`);
-    }
-});
-
+// ===== ROUTES =====
 app.use('/api/auth', authRoutes);
 app.use('/api/employers', employerRoutes);
 app.use('/api/jobs', jobRoutes);
@@ -133,6 +113,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
+// ===== HEALTH CHECK =====
 app.get('/api/health', (req, res) => {
     res.json({
         success: true,
@@ -142,6 +123,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// ===== SERVE FRONTEND IN PRODUCTION =====
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend')));
     app.get('*', (req, res) => {
@@ -149,6 +131,8 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+// ===== CRON JOBS =====
+// Check expired subscriptions every hour
 cron.schedule('0 * * * *', async () => {
     console.log('Running subscription expiry check...', new Date().toISOString());
     try {
@@ -172,6 +156,7 @@ cron.schedule('0 * * * *', async () => {
     }
 });
 
+// Clean up pending transactions daily
 cron.schedule('0 2 * * *', async () => {
     console.log('Cleaning up old pending transactions...');
     try {
@@ -187,21 +172,26 @@ cron.schedule('0 2 * * *', async () => {
     }
 });
 
+// ===== WEB SOCKET CONNECTION =====
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
+    
     socket.on('join', (userId) => {
         socket.join(`user_${userId}`);
         console.log(`User ${userId} joined their room`);
     });
+    
     socket.on('join_employer', (employerId) => {
         socket.join(`employer_${employerId}`);
         console.log(`Employer ${employerId} joined their room`);
     });
+    
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
     });
 });
 
+// ===== ERROR HANDLING =====
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);
     res.status(500).json({
@@ -211,10 +201,12 @@ app.use((err, req, res, next) => {
     });
 });
 
+// 404 handler
 app.use((req, res) => {
     res.status(404).json({ success: false, message: 'Route not found' });
 });
 
+// ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -222,6 +214,7 @@ server.listen(PORT, () => {
     console.log(`API: http://localhost:${PORT}/api`);
 });
 
+// ===== GRACEFUL SHUTDOWN =====
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully...');
     server.close(() => {
