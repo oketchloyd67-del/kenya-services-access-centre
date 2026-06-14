@@ -139,7 +139,7 @@ function showSection(sectionName) {
 
 async function loadDashboard() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/dashboard', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/dashboard', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         if (data.success) {
             const dash = data.dashboard;
@@ -220,7 +220,7 @@ async function deleteUser(userId) {
 
 async function loadEmployers() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/employers', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/employers', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         if (data.success && data.employers?.length) document.getElementById('employersList').innerHTML = data.employers.map(emp => `<tr><td class="px-4 py-2 font-medium">${escapeHtml(emp.company_name)}</td><td class="px-4 py-2">${escapeHtml(emp.full_name)}<br><small class="text-gray-500">${emp.email}</small></td><td class="px-4 py-2">${new Date(emp.subscription_expiry).toLocaleDateString()}</td><td class="px-4 py-2">${emp.total_jobs_posted || 0}</td><td class="px-4 py-2">${emp.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td><td class="px-4 py-2"><button class="btn btn-primary btn-sm">View</button></td></tr>`).join('');
         else document.getElementById('employersList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No employers found</td></tr>';
@@ -229,7 +229,7 @@ async function loadEmployers() {
 
 async function loadJobSeekers() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/users?role=job_seeker', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/users?role=job_seeker', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         if (data.success && data.users?.length) document.getElementById('jobSeekersList').innerHTML = data.users.map(user => `<tr><td class="px-4 py-2">${escapeHtml(user.full_name)}</td><td class="px-4 py-2">${escapeHtml(user.email)}</td><td class="px-4 py-2">${user.phone}</td><td class="px-4 py-2">${new Date(user.created_at).toLocaleDateString()}</td><td class="px-4 py-2">0</td><td class="px-4 py-2">${user.is_verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Pending</span>'}</td></tr>`).join('');
         else document.getElementById('jobSeekersList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No job seekers found</td></tr>';
@@ -238,7 +238,7 @@ async function loadJobSeekers() {
 
 async function loadServiceProviders() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/service-providers', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/service-providers', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         if (data.success && data.providers?.length) document.getElementById('serviceProvidersList').innerHTML = data.providers.map(p => `<tr><td class="px-4 py-2 font-medium">${escapeHtml(p.business_name)}</td><td class="px-4 py-2">${escapeHtml(p.service_category)}</td><td class="px-4 py-2">${escapeHtml(p.location)}</td><td class="px-4 py-2">${p.total_connections || 0}</td><td class="px-4 py-2">${p.is_featured ? '<span class="badge badge-success">Featured</span>' : '<span class="badge badge-warning">No</span>'}</td><td class="px-4 py-2"><button class="btn btn-primary btn-sm" onclick="toggleFeatured(\''+p.user_id+'\','+(!p.is_featured)+')">${p.is_featured ? 'Unfeature' : 'Feature'}</button></td></tr>`).join('');
         else document.getElementById('serviceProvidersList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No service providers found</td></tr>';
@@ -254,7 +254,7 @@ async function toggleFeatured(providerId, featured) {
 
 async function loadAllJobs() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/jobs', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/jobs', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         if (data.success && data.jobs?.length) document.getElementById('jobsList').innerHTML = data.jobs.map(job => `<tr><td class="px-4 py-2">${escapeHtml(job.title)}</td><td class="px-4 py-2">${escapeHtml(job.company_name)}</td><td class="px-4 py-2">${escapeHtml(job.location || 'Remote')}</td><td class="px-4 py-2">${job.applications_count || 0}</td><td class="px-4 py-2">${job.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td><td class="px-4 py-2">${new Date(job.posted_at).toLocaleDateString()}</td></tr>`).join('');
         else document.getElementById('jobsList').innerHTML = '<tr><td colspan="6" class="text-center py-8">No jobs found</td></tr>';
@@ -288,7 +288,7 @@ async function loadTransactions(page = 1) {
 
 async function loadPendingReviews() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/reviews/pending', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/reviews/pending', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         const container = document.getElementById('pendingReviewsList');
         if (data.success && data.reviews?.length) container.innerHTML = data.reviews.map(review => `<div class="review-item"><div class="review-header"><div class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div><span class="review-user">${escapeHtml(review.user_name)}</span><span class="review-date">${new Date(review.created_at).toLocaleString()}</span></div><p class="review-comment">${escapeHtml(review.comment)}</p><p class="review-entity">Entity: ${review.entity_type}</p><div class="review-actions"><button class="btn btn-success" onclick="approveReview('${review.id}', true)">Approve</button><button class="btn btn-danger" onclick="approveReview('${review.id}', false)">Reject</button></div></div>`).join('');
@@ -311,7 +311,7 @@ async function refreshLogs() {
         const data = await response.json();
         if (data.success && data.logs?.length) document.getElementById('logContent').innerHTML = data.logs.map(log => `<div class="log-line log-${log.level?.toLowerCase() || 'info'}">[${log.timestamp}] [${log.level}] ${escapeHtml(log.message)}</div>`).join('');
         else document.getElementById('logContent').innerHTML = '<div class="log-line">No logs found</div>';
-        const statsResponse = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/logs/stats', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const statsResponse = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/logs/stats', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const statsData = await statsResponse.json();
         if (statsData.success && statsData.stats) document.getElementById('logStats').innerHTML = Object.entries(statsData.stats).map(([name,stat]) => `<div class="log-stat-card"><div class="log-stat-name">${name.toUpperCase()}</div><div class="log-stat-size">${stat.sizeFormatted}</div><div class="log-stat-date">Modified: ${stat.modified ? new Date(stat.modified).toLocaleString() : 'N/A'}</div></div>`).join('');
     } catch(e) { showNotification('Failed to load logs', 'error'); }
@@ -332,7 +332,7 @@ function downloadLogs() {
 
 async function loadSettings() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/settings', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/settings', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const data = await response.json();
         if (data.success) {
             const s = data.settings;
@@ -368,7 +368,7 @@ document.getElementById('settingsForm')?.addEventListener('submit', async (e) =>
         service_connection_fee: document.getElementById('serviceConnectionFee').value
     };
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ settings }) });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({ settings }) });
         const data = await response.json();
         if (data.success) showNotification('Settings saved successfully', 'success');
         else showNotification(data.message, 'error');
@@ -377,7 +377,7 @@ document.getElementById('settingsForm')?.addEventListener('submit', async (e) =>
 
 async function exportUsers() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/export/users', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/export/users', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -390,7 +390,7 @@ async function exportUsers() {
 }
 async function exportTransactions() {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/admin/export/transactions', { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/admin/export/transactions', { headers: { 'Authorization': `Bearer ${authToken}` } });
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

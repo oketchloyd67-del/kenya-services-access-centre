@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://kenyaServices-AccessCentre.onrender.com';
+const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
 /**
  * Kenya Services Access Centre
  * Main JavaScript File
@@ -52,7 +52,7 @@ function setCurrentUser(user) {
 
 async function login(email, password) {
     try {
-        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/auth/login', {
+        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })

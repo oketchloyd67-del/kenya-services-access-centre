@@ -16,7 +16,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: ['http://localhost:3000', 'https://kenyaServices-AccessCentre.onrender.com','https://kenyaServices-AccessCentre.onrender.com'],
+        origin: ['http://localhost:3000', 'https://kenyaservices-accesscentre-emph.onrender.com','https://kenyaservices-accesscentre-emph.onrender.com'],
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true
     }
