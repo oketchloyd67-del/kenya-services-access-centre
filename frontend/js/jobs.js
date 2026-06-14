@@ -33,7 +33,7 @@ async function searchJobs(page = 1) {
             page
         });
         
-        const response = await fetch(`http://localhost:5000/api/jobs/search?${params}`, {
+        const response = await fetch(`https://kenya-services-backend.onrender.com/api/jobs/search?${params}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -121,7 +121,7 @@ async function viewRequirements(jobId) {
     showLoading(true);
     
     try {
-        const response = await fetch('http://localhost:5000/api/jobs/view-requirements', {
+        const response = await fetch('https://kenya-services-backend.onrender.com/api/jobs/view-requirements', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ async function getEmployerDetails(jobId) {
     showLoading(true);
     
     try {
-        const response = await fetch('http://localhost:5000/api/jobs/get-employer-details', {
+        const response = await fetch('https://kenya-services-backend.onrender.com/api/jobs/get-employer-details', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -310,7 +310,7 @@ async function submitApplication(event) {
     showLoading(true);
     
     try {
-        const response = await fetch('http://localhost:5000/api/jobs/apply', {
+        const response = await fetch('https://kenya-services-backend.onrender.com/api/jobs/apply', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://kenya-services-backend.onrender.com';
 /**
  * Kenya Services Access Centre
  * Main JavaScript File
@@ -52,7 +52,7 @@ function setCurrentUser(user) {
 
 async function login(email, password) {
     try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch('https://kenya-services-backend.onrender.com/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -135,7 +135,7 @@ async function pollTransactionStatus(checkoutRequestID, maxAttempts = 30, interv
         attempts++;
         
         try {
-            const response = await fetch(`${API_BASE_URL}/api/payments/transaction-status/${checkoutRequestID}`, {
+            const response = await fetch(`/api/payments/transaction-status/${checkoutRequestID}`, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
             const data = await response.json();
