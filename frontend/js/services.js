@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://kenya-services-access-centre.onrender.com';
+const API_BASE_URL = 'https://kenyaServices-AccessCentre.onrender.com';
 /**
  * Kenya Services Access Centre
  * Service Provider Search and Connection JavaScript
@@ -32,7 +32,7 @@ async function searchServices(page = 1) {
             page
         });
         
-        const response = await fetch(`https://kenya-services-access-centre.onrender.com/api/services/search?${params}`, {
+        const response = await fetch(`https://kenyaServices-AccessCentre.onrender.com/api/services/search?${params}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -141,7 +141,7 @@ async function submitConnection(event) {
     showLoading(true);
     
     try {
-        const response = await fetch('https://kenya-services-access-centre.onrender.com/api/services/connect', {
+        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/services/connect', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -225,7 +225,7 @@ async function viewProviderProfile(providerId) {
     showLoading(true);
     
     try {
-        const response = await fetch(`https://kenya-services-access-centre.onrender.com/api/services/${providerId}`, {
+        const response = await fetch(`https://kenyaServices-AccessCentre.onrender.com/api/services/${providerId}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -274,7 +274,7 @@ async function viewProviderProfile(providerId) {
 
 async function loadServiceCategories() {
     try {
-        const response = await fetch('https://kenya-services-access-centre.onrender.com/api/services/categories/list');
+        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/services/categories/list');
         const data = await response.json();
         
         if (data.success) {

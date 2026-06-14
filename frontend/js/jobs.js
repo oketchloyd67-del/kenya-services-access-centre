@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://kenya-services-access-centre.onrender.com';
+const API_BASE_URL = 'https://kenyaServices-AccessCentre.onrender.com';
 /**
  * Kenya Services Access Centre
  * Job Search and Application JavaScript
@@ -34,7 +34,7 @@ async function searchJobs(page = 1) {
             page
         });
         
-        const response = await fetch(`https://kenya-services-access-centre.onrender.com/api/jobs/search?${params}`, {
+        const response = await fetch(`https://kenyaServices-AccessCentre.onrender.com/api/jobs/search?${params}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -122,7 +122,7 @@ async function viewRequirements(jobId) {
     showLoading(true);
     
     try {
-        const response = await fetch('https://kenya-services-access-centre.onrender.com/api/jobs/view-requirements', {
+        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/jobs/view-requirements', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ async function getEmployerDetails(jobId) {
     showLoading(true);
     
     try {
-        const response = await fetch('https://kenya-services-access-centre.onrender.com/api/jobs/get-employer-details', {
+        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/jobs/get-employer-details', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -311,7 +311,7 @@ async function submitApplication(event) {
     showLoading(true);
     
     try {
-        const response = await fetch('https://kenya-services-access-centre.onrender.com/api/jobs/apply', {
+        const response = await fetch('https://kenyaServices-AccessCentre.onrender.com/api/jobs/apply', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`
