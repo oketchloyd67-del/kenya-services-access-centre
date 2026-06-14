@@ -16,7 +16,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        origin: ['http://localhost:3000', 'https://kenya-services-frontend.onrender.com','https://kenya-services-frontend.onrender.com'],
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true
     }
