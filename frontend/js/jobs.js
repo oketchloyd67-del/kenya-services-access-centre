@@ -1,3 +1,4 @@
+const API_BASE_URL = 'https://kenya-services-access-centre.onrender.com';
 /**
  * Kenya Services Access Centre
  * Job Search and Application JavaScript
