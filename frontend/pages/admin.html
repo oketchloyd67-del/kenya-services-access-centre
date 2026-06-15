@@ -182,20 +182,6 @@
             margin-top: 8px;
         }
 
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stat-icon.blue { background: #dbeafe; color: #3b82f6; }
-        .stat-icon.green { background: #dcfce7; color: #10b981; }
-        .stat-icon.purple { background: #ede9fe; color: #8b5cf6; }
-        .stat-icon.orange { background: #ffedd5; color: #f59e0b; }
-
         /* Data Cards */
         .data-card {
             background: white;
@@ -262,6 +248,7 @@
             cursor: pointer;
             border: none;
             transition: all 0.2s;
+            margin: 0 4px;
         }
 
         .btn-approve {
@@ -279,6 +266,15 @@
         }
 
         .btn-reject:hover {
+            background: #dc2626;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
             background: #dc2626;
         }
 
@@ -328,47 +324,6 @@
             color: #334155;
         }
 
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 24px;
-        }
-
-        .modal-content h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
         /* Review Item */
         .review-item {
             padding: 16px;
@@ -409,6 +364,45 @@
         .review-actions {
             display: flex;
             gap: 10px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 400px;
+            width: 90%;
+            padding: 24px;
+        }
+
+        .modal-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
         }
 
         /* Mobile Menu */
@@ -506,10 +500,23 @@
     <div class="content-area" id="contentArea"></div>
 </main>
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h3>Confirm Delete</h3>
+        <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+        <div class="modal-buttons">
+            <button class="btn-sm" style="background:#cbd5e1; color:#334155;" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-sm btn-delete" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
     let authToken = localStorage.getItem('authToken');
     let currentUserId = null;
+    let deleteTargetId = null;
     let revenueChart = null;
     let usersChart = null;
 
@@ -538,6 +545,39 @@
         div.textContent = text;
         return div.innerHTML;
     }
+
+    function showDeleteModal(userId) {
+        deleteTargetId = userId;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+        deleteTargetId = null;
+        document.getElementById('deleteModal').classList.remove('active');
+    }
+
+    async function deleteUser() {
+        if (!deleteTargetId) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${deleteTargetId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification('User deleted successfully', 'success');
+                closeDeleteModal();
+                showSection('users');
+            } else {
+                showNotification(data.message || 'Delete failed', 'error');
+            }
+        } catch (error) {
+            showNotification('Error deleting user', 'error');
+        }
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = deleteUser;
 
     const sections = {
         dashboard: getDashboardHTML,
@@ -595,7 +635,7 @@
         } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading dashboard</div>'; }
     }
 
-    // Users Section
+    // Users Section with Delete Button
     async function getUsersHTML() {
         try {
             const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
@@ -603,12 +643,12 @@
             });
             const data = await response.json();
             return `
-                <div class="data-card"><div class="card-header"><h3>All Users</h3></div><div class="data-table"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Verified</th><th>Actions</th></tr></thead><tbody>${(data.users || []).map(user => `<tr><td>${escapeHtml(user.full_name)}</td><td>${escapeHtml(user.email)}</td><td>${user.phone}</td><td><span class="badge badge-info">${user.role}</span></td><td>${user.is_verified ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td><td>${!user.is_verified ? `<button class="btn-sm btn-approve" onclick="verifyUser('${user.id}', true)">Verify</button>` : ''}</td></tr>`).join('')}</tbody></table></div></div>
+                <div class="data-card"><div class="card-header"><h3>All Users</h3></div><div class="data-table"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Verified</th><th>Actions</th></tr></thead><tbody>${(data.users || []).map(user => `<tr><td>${escapeHtml(user.full_name)}</td><td>${escapeHtml(user.email)}</td><td>${user.phone}</td><td><span class="badge badge-info">${user.role}</span></td><td>${user.is_verified ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td><td>${!user.is_verified ? `<button class="btn-sm btn-approve" onclick="verifyUser('${user.id}', true)">Verify</button>` : ''}<button class="btn-sm btn-delete" onclick="showDeleteModal('${user.id}')">Delete</button></td></tr>`).join('')}</tbody></table></div></div>
             `;
         } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading users</div>'; }
     }
 
-    // Reviews Section - FIXED to show pending reviews
+    // Reviews Section
     async function getReviewsHTML() {
         try {
             const response = await fetch(`${API_BASE_URL}/api/admin/reviews/pending`, {
@@ -641,12 +681,11 @@
                 `).join('')}</div>
             `;
         } catch(e) { 
-            console.error('Reviews error:', e);
-            return '<div class="text-center py-12 text-red-500">Error loading reviews: ' + e.message + '</div>'; 
+            return '<div class="text-center py-12 text-red-500">Error loading reviews</div>';
         }
     }
 
-    // Other section functions (simplified)
+    // Other section functions
     async function getEmployersHTML() { return '<div class="data-card"><div class="card-header"><h3>Employers</h3></div><div class="text-center py-12">Loading...</div></div>'; }
     async function getJobSeekersHTML() { return '<div class="data-card"><div class="card-header"><h3>Job Seekers</h3></div><div class="text-center py-12">Loading...</div></div>'; }
     async function getServiceProvidersHTML() { return '<div class="data-card"><div class="card-header"><h3>Service Providers</h3></div><div class="text-center py-12">Loading...</div></div>'; }
