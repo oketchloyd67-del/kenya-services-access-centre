@@ -28,6 +28,73 @@ async function searchJobs(page = 1) {
     }
 }
 
+async function submitApplication(event) {
+    event.preventDefault();
+    
+    const user = getCurrentUser();
+    const jobId = document.getElementById('applyJobId').value;
+    const jobSeekerName = document.getElementById('applicantName').value;
+    const jobSeekerEmail = document.getElementById('applicantEmail').value;
+    const jobSeekerPhone = document.getElementById('applicantPhone').value;
+    const coverLetter = document.getElementById('coverLetter').value;
+    const cvFile = document.getElementById('cvFile').files[0];
+    
+    if (!cvFile) {
+        showNotification('Please upload your CV', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('jobId', jobId);
+    formData.append('userId', user.id);
+    formData.append('job_seeker_name', jobSeekerName);
+    formData.append('job_seeker_email', jobSeekerEmail);
+    formData.append('job_seeker_phone', jobSeekerPhone);
+    formData.append('cover_letter', coverLetter);
+    formData.append('cv', cvFile);
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/jobs/apply`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+            body: formData
+        });
+        
+        const data = await response.json();
+        showLoading(false);
+        
+        if (data.success) {
+            if (data.requires_payment) {
+                const phoneNumber = prompt('Enter your M-PESA phone number to pay KES 50 for CV upload:');
+                if (phoneNumber && validatePhoneNumber(phoneNumber)) {
+                    const payment = await initiateMpesaPayment(
+                        phoneNumber, 
+                        data.amount, 
+                        data.transaction_type, 
+                        user.id, 
+                        data.metadata
+                    );
+                    if (payment.success) {
+                        showNotification('Payment successful! Your application has been submitted.', 'success');
+                        closeModal('applyModal');
+                        document.getElementById('applicationForm').reset();
+                    }
+                }
+            } else {
+                showNotification('Application submitted successfully!', 'success');
+                closeModal('applyModal');
+            }
+        } else {
+            showNotification(data.message, 'error');
+        }
+    } catch (error) {
+        showLoading(false);
+        showNotification('An error occurred', 'error');
+    }
+}
+
 function displayJobs(jobs) {
     const container = document.getElementById('jobsContainer');
     if (!container) return;
