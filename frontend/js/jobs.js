@@ -1,3 +1,12 @@
+// TEST ENDPOINT - Remove after debugging
+router.get('/test', async (req, res) => {
+    try {
+        res.json({ success: true, message: 'Jobs API is working' });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
