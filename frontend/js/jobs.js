@@ -59,47 +59,55 @@ router.get('/test', async (req, res) => {
 // GET /api/jobs/search - Search jobs
 // ============================================
 router.get('/search', async (req, res) => {
-    const { keyword, location, employment_type } = req.query;
     const db = req.app.get('db');
     
     try {
-        console.log('Jobs search called');
+        console.log('=== JOBS SEARCH STARTED ===');
         
-        // Simple query first
-        let query = `
-            SELECT j.*, u.full_name as company_name
-            FROM jobs j
-            LEFT JOIN employers e ON j.employer_id = e.user_id
-            LEFT JOIN users u ON e.user_id = u.id
-            WHERE j.is_active = true
-            ORDER BY j.posted_at DESC
+        // First, test if database is connected
+        const testQuery = await db.query('SELECT NOW() as now');
+        console.log('Database connected:', testQuery.rows[0].now);
+        
+        // Check if jobs table exists
+        const tableCheck = await db.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'jobs'
+            ) as exists
+        `);
+        console.log('Jobs table exists:', tableCheck.rows[0].exists);
+        
+        if (!tableCheck.rows[0].exists) {
+            return res.json({ 
+                success: false, 
+                message: 'Jobs table does not exist. Please run database migration.',
+                jobs: [] 
+            });
+        }
+        
+        // Simple query to get jobs
+        const result = await db.query(`
+            SELECT id, title, description, location, salary_range, employment_type, posted_at
+            FROM jobs 
+            WHERE is_active = true 
+            ORDER BY posted_at DESC 
             LIMIT 50
-        `;
+        `);
         
-        const result = await db.query(query);
-        
-        const jobs = result.rows.map(job => ({
-            id: job.id,
-            title: job.title || 'Untitled',
-            description: (job.description || '').substring(0, 200) + '...',
-            location: job.location || 'Remote',
-            salary_range: job.salary_range || 'Negotiable',
-            employment_type: job.employment_type || 'Full-time',
-            company_name: job.company_name || 'Unknown Company',
-            posted_at: job.posted_at
-        }));
+        console.log(`Found ${result.rows.length} jobs`);
         
         res.json({
             success: true,
-            count: jobs.length,
-            jobs: jobs
+            count: result.rows.length,
+            jobs: result.rows
         });
         
     } catch (error) {
         console.error('Search jobs error:', error);
         res.status(500).json({ 
             success: false, 
-            message: error.message 
+            message: error.message,
+            stack: error.stack 
         });
     }
 });
