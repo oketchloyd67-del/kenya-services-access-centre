@@ -2,9 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 
+// ============================================
+// REGISTER EMPLOYER (after user registration)
+// ============================================
 router.post('/register', [
-    body('userId').isUUID(),
-    body('company_name').notEmpty().trim(),
+    body('userId').isUUID().withMessage('Valid user ID is required'),
+    body('company_name').notEmpty().trim().withMessage('Company name is required'),
     body('business_reg_number').optional(),
     body('company_address').optional()
 ], async (req, res) => {
@@ -16,44 +19,69 @@ router.post('/register', [
     const { userId, company_name, business_reg_number, company_address } = req.body;
     const db = req.app.get('db');
     
+    console.log('=== EMPLOYER REGISTRATION REQUEST ===');
+    console.log('userId:', userId);
+    console.log('company_name:', company_name);
+    
     try {
+        // Check if user exists and is employer
         const userResult = await db.query(
             'SELECT * FROM users WHERE id = $1 AND role = $2',
             [userId, 'employer']
         );
         
         if (userResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Employer not found' });
+            console.log('User not found or not an employer:', userId);
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Employer user not found. Please complete account registration first.' 
+            });
         }
         
+        // Check if already registered as employer
         const existingResult = await db.query(
             'SELECT * FROM employers WHERE user_id = $1',
             [userId]
         );
         
         if (existingResult.rows.length > 0) {
-            return res.status(400).json({ success: false, message: 'Already registered as employer' });
+            console.log('User already registered as employer:', userId);
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Already registered as employer' 
+            });
         }
         
-        await db.query(
+        // Create employer record (subscription starts after payment)
+        const result = await db.query(
             `INSERT INTO employers (user_id, company_name, business_reg_number, company_address, subscription_expiry, entry_fee_paid, is_active)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING user_id, company_name`,
             [userId, company_name, business_reg_number, company_address, '2000-01-01', false, false]
         );
+        
+        console.log('Employer registered successfully:', userId);
         
         res.json({
             success: true,
             message: 'Employer registration successful. Please pay entry fee to start posting jobs.',
             requiresPayment: true,
-            amount: 700
+            amount: 700,
+            employer: result.rows[0]
         });
         
     } catch (error) {
         console.error('Employer registration error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error: ' + error.message 
+        });
     }
 });
 
+// ============================================
+// POST A JOB
+// ============================================
 router.post('/post-job', [
     body('employerId').isUUID(),
     body('title').notEmpty().trim(),
@@ -73,6 +101,7 @@ router.post('/post-job', [
     const db = req.app.get('db');
     
     try {
+        // Check if employer exists and has active subscription
         const employerResult = await db.query(
             `SELECT * FROM employers 
              WHERE user_id = $1 AND is_active = true AND entry_fee_paid = true AND subscription_expiry > NOW()`,
@@ -89,12 +118,13 @@ router.post('/post-job', [
         const expiresAt = deadline ? new Date(deadline) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         
         const result = await db.query(
-            `INSERT INTO jobs (employer_id, title, description, requirements, location, salary_range, employment_type, expires_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `INSERT INTO jobs (employer_id, title, description, requirements, location, salary_range, employment_type, expires_at, is_active)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
              RETURNING *`,
-            [employerId, title, description, requirements, location, salary_range, employment_type, expiresAt]
+            [employerId, title, description, requirements, location, salary_range, employment_type, expiresAt, true]
         );
         
+        // Update employer's job count
         await db.query(
             'UPDATE employers SET total_jobs_posted = total_jobs_posted + 1 WHERE user_id = $1',
             [employerId]
@@ -108,10 +138,13 @@ router.post('/post-job', [
         
     } catch (error) {
         console.error('Post job error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 });
 
+// ============================================
+// GET EMPLOYER'S JOBS
+// ============================================
 router.get('/jobs/:employerId', async (req, res) => {
     const { employerId } = req.params;
     const db = req.app.get('db');
@@ -130,7 +163,7 @@ router.get('/jobs/:employerId', async (req, res) => {
         res.json({
             success: true,
             jobs: result.rows,
-            subscription: subResult.rows[0]
+            subscription: subResult.rows[0] || null
         });
         
     } catch (error) {
@@ -139,6 +172,9 @@ router.get('/jobs/:employerId', async (req, res) => {
     }
 });
 
+// ============================================
+// GET APPLICATIONS FOR EMPLOYER'S JOBS
+// ============================================
 router.get('/applications/:employerId', async (req, res) => {
     const { employerId } = req.params;
     const db = req.app.get('db');
@@ -164,6 +200,9 @@ router.get('/applications/:employerId', async (req, res) => {
     }
 });
 
+// ============================================
+// RENEW SUBSCRIPTION
+// ============================================
 router.post('/renew-subscription', async (req, res) => {
     const { employerId } = req.body;
     const db = req.app.get('db');
@@ -208,6 +247,9 @@ router.post('/renew-subscription', async (req, res) => {
     }
 });
 
+// ============================================
+// GET SUBSCRIPTION STATUS WITH COUNTDOWN
+// ============================================
 router.get('/subscription-status/:employerId', async (req, res) => {
     const { employerId } = req.params;
     const db = req.app.get('db');
