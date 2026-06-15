@@ -521,4 +521,59 @@ router.get('/export/transactions', isAdmin, async (req, res) => {
     }
 });
 
+// DELETE /api/admin/users/:userId - Permanently delete user
+router.delete('/users/:userId', isAdmin, async (req, res) => {
+    const { userId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        // Check if user exists
+        const userResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        const user = userResult.rows[0];
+        
+        // Prevent admin from deleting themselves
+        if (user.email === 'admin@kenyaservices.co.ke') {
+            return res.status(403).json({ success: false, message: 'Cannot delete the main admin account' });
+        }
+        
+        // Delete related records first (if foreign keys exist)
+        await db.query('DELETE FROM job_applications WHERE job_seeker_id = $1', [userId]);
+        await db.query('DELETE FROM job_employer_access WHERE user_id = $1', [userId]);
+        await db.query('DELETE FROM service_connections WHERE seeker_id = $1', [userId]);
+        await db.query('DELETE FROM reviews WHERE user_id = $1', [userId]);
+        await db.query('DELETE FROM transactions WHERE user_id = $1', [userId]);
+        
+        // For employer, delete their jobs first
+        const employerCheck = await db.query('SELECT user_id FROM employers WHERE user_id = $1', [userId]);
+        if (employerCheck.rows.length > 0) {
+            await db.query('DELETE FROM jobs WHERE employer_id = $1', [userId]);
+            await db.query('DELETE FROM employers WHERE user_id = $1', [userId]);
+        }
+        
+        // For service provider
+        const providerCheck = await db.query('SELECT user_id FROM service_providers WHERE user_id = $1', [userId]);
+        if (providerCheck.rows.length > 0) {
+            await db.query('DELETE FROM service_connections WHERE service_provider_id = $1', [userId]);
+            await db.query('DELETE FROM service_providers WHERE user_id = $1', [userId]);
+        }
+        
+        // Finally, delete the user
+        await db.query('DELETE FROM users WHERE id = $1', [userId]);
+        
+        res.json({ 
+            success: true, 
+            message: 'User permanently deleted from the system' 
+        });
+        
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    }
+});
+
 module.exports = router;
