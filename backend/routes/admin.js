@@ -86,16 +86,21 @@ router.get('/dashboard', isAdmin, async (req, res) => {
     }
 });
 
+// GET /api/admin/users - Get all active users (not deleted)
 router.get('/users', isAdmin, async (req, res) => {
     const { page = 1, limit = 20, role, is_verified } = req.query;
     const db = req.app.get('db');
     const offset = (page - 1) * limit;
     
     try {
+        // Only show users that are ACTIVE (not soft-deleted)
+        // If you're using hard delete, just show all users since deleted ones are gone
         let query = `
-            SELECT id, email, phone, full_name, role, is_verified, created_at, last_login, id_photo_url, face_scan_url, business_certificate_url, id_number
+            SELECT id, email, phone, full_name, role, is_verified, created_at, last_login, 
+                   id_photo_url, face_scan_url, business_certificate_url, id_number
             FROM users
             WHERE role != 'admin'
+            AND is_active = true
         `;
         const params = [];
         let paramIndex = 1;
@@ -118,7 +123,7 @@ router.get('/users', isAdmin, async (req, res) => {
         const result = await db.query(query, params);
         
         const countResult = await db.query(`
-            SELECT COUNT(*) FROM users WHERE role != 'admin'
+            SELECT COUNT(*) FROM users WHERE role != 'admin' AND is_active = true
         `);
         
         res.json({
@@ -422,20 +427,27 @@ router.delete('/users/:userId', isAdmin, async (req, res) => {
     const db = req.app.get('db');
     
     try {
+        // Check if user exists
         const userResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+        
         if (userResult.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
         
-        await db.query('UPDATE users SET is_active = false WHERE id = $1', [userId]);
+        const user = userResult.rows[0];
         
-        res.json({
-            success: true,
-            message: 'User deactivated successfully'
-        });
+        // Prevent deleting main admin
+        if (user.email === 'admin@kenyaservices.co.ke') {
+            return res.status(403).json({ success: false, message: 'Cannot delete main admin account' });
+        }
+        
+        // HARD DELETE - remove from database completely
+        await db.query('DELETE FROM users WHERE id = $1', [userId]);
+        
+        res.json({ success: true, message: 'User permanently deleted' });
         
     } catch (error) {
-        console.error('Delete user error:', error);
+        console.error('Delete error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
