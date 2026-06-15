@@ -68,39 +68,143 @@
         .hidden {
             display: none !important;
         }
+        .nav-bar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        .btn-post-job {
+            background: #38a169;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-post-job:hover {
+            background: #2f855a;
+            transform: translateY(-2px);
+        }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #4a5568;
+        }
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: white;
+            padding: 20px;
+            gap: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .mobile-menu.active {
+            display: flex;
+        }
+        .mobile-menu a {
+            text-decoration: none;
+            color: #4a5568;
+            padding: 10px 0;
+        }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        .user-welcome {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .user-welcome i {
+            color: #667eea;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg fixed w-full top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-purple-600">Kenya Services Access Centre</h1>
-                </div>
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="#employers" class="text-gray-700 hover:text-purple-600">Employers</a>
-                    <a href="#job-seekers" class="text-gray-700 hover:text-purple-600">Job Seekers</a>
-                    <a href="#services" class="text-gray-700 hover:text-purple-600">Services</a>
-                    <a href="#reviews" class="text-gray-700 hover:text-purple-600">Reviews</a>
-                    <a href="pages/login.html" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Login</a>
-                    <a href="pages/login.html?redirect=employer-dashboard.html" id="postJobBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Post a Job</a>
-                </div>
-                <button id="mobileMenuBtn" class="md:hidden text-gray-700">
-                    <i class="fas fa-bars text-2xl"></i>
-                </button>
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>Kenya Services Access Centre</h1>
             </div>
+            <div class="nav-links">
+                <a href="#employers">Employers</a>
+                <a href="#job-seekers">Job Seekers</a>
+                <a href="#services">Services</a>
+                <a href="#reviews">Reviews</a>
+                <span id="userName" class="user-welcome"></span>
+                <a href="pages/login.html" id="loginLink" class="btn-login">Login</a>
+                <button id="postJobBtn" class="btn-post-job">Post a Job</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
-        <div id="mobileMenu" class="hidden md:hidden bg-white border-t">
-            <div class="flex flex-col p-4 space-y-3">
-                <a href="#employers" class="text-gray-700 hover:text-purple-600">Employers</a>
-                <a href="#job-seekers" class="text-gray-700 hover:text-purple-600">Job Seekers</a>
-                <a href="#services" class="text-gray-700 hover:text-purple-600">Services</a>
-                <a href="#reviews" class="text-gray-700 hover:text-purple-600">Reviews</a>
-                <a href="pages/login.html" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-center hover:bg-purple-700">Login</a>
-                <a href="pages/login.html?redirect=employer-dashboard.html" id="mobilePostJobBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700">Post a Job</a>
-            </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#employers">Employers</a>
+            <a href="#job-seekers">Job Seekers</a>
+            <a href="#services">Services</a>
+            <a href="#reviews">Reviews</a>
+            <a href="pages/login.html" id="mobileLoginLink" class="btn-login" style="text-align: center;">Login</a>
+            <button id="mobilePostJobBtn" class="btn-post-job" style="text-align: center;">Post a Job</button>
         </div>
     </nav>
 
@@ -132,7 +236,7 @@
                 <div class="bg-gray-50 p-6 rounded-lg shadow-md text-center card-hover">
                     <i class="fas fa-chart-line text-4xl text-purple-600 mb-4"></i>
                     <h3 class="text-xl font-semibold mb-2">Smart Matching</h3>
-                    <p class="text-gray-600">Our AI matches you with the most qualified candidates</p>
+                    <p class="text-gray-600">Our System matches you with the most qualified candidates</p>
                 </div>
                 <div class="bg-gray-50 p-6 rounded-lg shadow-md text-center card-hover">
                     <i class="fas fa-shield-alt text-4xl text-purple-600 mb-4"></i>
@@ -156,17 +260,17 @@
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="bg-white p-6 rounded-lg shadow-md text-center card-hover">
                     <i class="fas fa-search text-4xl text-green-600 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-2">KES 50 - View Requirements</h3>
+                    <h3 class="text-xl font-semibold mb-2">View Requirements</h3>
                     <p class="text-gray-600">See full job requirements before applying</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-md text-center card-hover">
                     <i class="fas fa-building text-4xl text-green-600 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-2">KES 100 - Get Employer Details</h3>
+                    <h3 class="text-xl font-semibold mb-2">Get Employer Details</h3>
                     <p class="text-gray-600">Access employer contact information</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-md text-center card-hover">
                     <i class="fas fa-file-upload text-4xl text-green-600 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-2">KES 50 - Upload CV</h3>
+                    <h3 class="text-xl font-semibold mb-2">Upload CV</h3>
                     <p class="text-gray-600">Submit your application directly to employers</p>
                 </div>
             </div>
@@ -242,8 +346,8 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Contact</h3>
                     <ul class="space-y-2 text-gray-400">
-                        <li><i class="fab fa-whatsapp mr-2 text-green-400"></i> WhatsApp: +254 700 000000</li>
-                        <li><i class="far fa-envelope mr-2"></i> support@kenyaservices.co.ke</li>
+                        <li><i class="fab fa-whatsapp mr-2 text-green-400"></i> WhatsApp: +254714589375</li>
+                        <li><i class="far fa-envelope mr-2"></i> claimsagency254@gmail.com</li>
                     </ul>
                 </div>
                 <div>
@@ -264,7 +368,7 @@
 
     <!-- WhatsApp Floating Button -->
     <div class="floating-whatsapp">
-        <a href="https://wa.me/254700000000?text=Hello%2C%20I%20need%20help%20with%20Kenya%20Services%20Access%20Centre" 
+        <a href="https://wa.me/254714589375?text=Hello%2C%20I%20need%20help%20with%20Kenya%20Services%20Access%20Centre" 
            target="_blank"
            class="bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all inline-flex items-center justify-center">
             <i class="fab fa-whatsapp text-2xl"></i>
@@ -303,6 +407,17 @@
     <script>
         const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
         let selectedRating = 0;
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        function getCurrentUser() {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                return currentUser;
+            }
+            return null;
+        }
 
         function showNotification(message, type) {
             const toast = document.createElement('div');
@@ -312,29 +427,45 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
-        function showLoading(show) {
-            let overlay = document.getElementById('loadingOverlay');
-            if (show) {
-                if (!overlay) {
-                    overlay = document.createElement('div');
-                    overlay.id = 'loadingOverlay';
-                    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999';
-                    overlay.innerHTML = '<div style="background:white;padding:20px;border-radius:10px;"><div class="spinner"></div><p class="mt-2">Processing...</p></div>';
-                    document.body.appendChild(overlay);
-                }
+        function updateAuthUI() {
+            const user = getCurrentUser();
+            const loginLink = document.getElementById('loginLink');
+            const mobileLoginLink = document.getElementById('mobileLoginLink');
+            const userNameSpan = document.getElementById('userName');
+            
+            if (user) {
+                if (loginLink) loginLink.classList.add('hidden');
+                if (mobileLoginLink) mobileLoginLink.classList.add('hidden');
+                if (userNameSpan) userNameSpan.innerHTML = `<i class="fas fa-user-circle"></i> ${user.full_name}`;
             } else {
-                if (overlay) overlay.remove();
+                if (loginLink) loginLink.classList.remove('hidden');
+                if (mobileLoginLink) mobileLoginLink.classList.remove('hidden');
+                if (userNameSpan) userNameSpan.innerHTML = '';
             }
         }
 
-        function getCurrentUser() {
-            const userStr = localStorage.getItem('user');
-            return userStr ? JSON.parse(userStr) : null;
+        function handlePostJobClick(e) {
+            e.preventDefault();
+            const user = getCurrentUser();
+            
+            if (!user) {
+                window.location.href = 'pages/login.html?redirect=employer-dashboard.html';
+            } else if (user.role === 'employer') {
+                window.location.href = 'pages/employer-dashboard.html';
+            } else {
+                showNotification('Only employers can post jobs. Please register as an employer.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'pages/employer-register.html';
+                }, 2000);
+            }
         }
 
         document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.toggle('hidden');
+            document.getElementById('mobileMenu').classList.toggle('active');
         });
+
+        document.getElementById('postJobBtn').addEventListener('click', handlePostJobClick);
+        document.getElementById('mobilePostJobBtn').addEventListener('click', handlePostJobClick);
 
         document.querySelectorAll('#ratingStars i').forEach(star => {
             star.addEventListener('click', function() {
@@ -379,8 +510,6 @@
                 return;
             }
             
-            showLoading(true);
-            
             try {
                 const response = await fetch(`${API_BASE_URL}/api/reviews`, {
                     method: 'POST',
@@ -394,7 +523,6 @@
                 });
                 
                 const data = await response.json();
-                showLoading(false);
                 
                 if (data.success) {
                     alert('Thank you for your review! It will be visible after admin approval.');
@@ -404,7 +532,6 @@
                     alert('Failed to submit review. Please try again.');
                 }
             } catch (error) {
-                showLoading(false);
                 console.error('Error submitting review:', error);
                 alert('An error occurred. Please try again.');
             }
@@ -454,27 +581,7 @@
             return div.innerHTML;
         }
 
-        // Update Post a Job button behavior
-        function handlePostJobClick(e) {
-            const user = getCurrentUser();
-            
-            if (!user) {
-                window.location.href = 'pages/login.html?redirect=employer-dashboard.html';
-            } else if (user.role === 'employer') {
-                window.location.href = 'pages/employer-dashboard.html';
-            } else {
-                showNotification('Only employers can post jobs. Please register as an employer.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'pages/employer-register.html';
-                }, 2000);
-            }
-        }
-
-        // Update navigation buttons
-        document.querySelectorAll('#postJobBtn, #mobilePostJobBtn').forEach(btn => {
-            btn.addEventListener('click', handlePostJobClick);
-        });
-
+        updateAuthUI();
         loadReviews();
     </script>
 </body>
