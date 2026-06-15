@@ -1,4 +1,5 @@
-const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
+// Use the existing global variable (don't redeclare)
+console.log('API_BASE_URL:', API_BASE_URL);
 /**
  * Kenya Services Access Centre
  * Employer Dashboard JavaScript

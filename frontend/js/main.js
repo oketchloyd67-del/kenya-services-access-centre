@@ -178,7 +178,7 @@ function connectWebSocket(userId) {
     
     try {
         const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const socketUrl = `${protocol}${window.location.host}`;
+        const socketUrl = 'https://kenyaservices-accesscentre-ly34.onrender.com';
         
         socket = io(socketUrl, {
             transports: ['websocket'],
