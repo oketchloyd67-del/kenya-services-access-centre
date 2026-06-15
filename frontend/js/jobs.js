@@ -1,6 +1,4 @@
-// frontend/js/jobs.js - Browser JavaScript (NO require!)
-
-const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
+// frontend/js/jobs.js - NO API_BASE_URL declaration here
 
 async function searchJobs(page = 1) {
     const keyword = document.getElementById('searchKeyword')?.value || '';
@@ -26,7 +24,6 @@ async function searchJobs(page = 1) {
         }
     } catch (error) {
         showLoading(false);
-        console.error('Search error:', error);
         showNotification('An error occurred', 'error');
     }
 }
@@ -41,11 +38,11 @@ function displayJobs(jobs) {
     }
     
     container.innerHTML = jobs.map(job => `
-        <div class="job-card" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:8px;">
-            <h3 style="margin:0 0 5px 0;">${escapeHtml(job.title)}</h3>
-            <p style="color:#666; margin:0 0 10px 0;">${escapeHtml(job.company_name)}</p>
+        <div class="job-card">
+            <h3>${escapeHtml(job.title)}</h3>
+            <p>${escapeHtml(job.company_name)}</p>
             <p>📍 ${escapeHtml(job.location || 'Remote')} | 💰 ${escapeHtml(job.salary_range || 'Negotiable')}</p>
-            <button onclick="viewRequirements('${job.id}')" style="background:#4a5568; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; margin-top:10px;">
+            <button onclick="viewRequirements('${job.id}')" class="btn-view">
                 View Requirements (KES 50)
             </button>
         </div>
@@ -63,6 +60,7 @@ async function viewRequirements(jobId) {
     showLoading(true);
     
     try {
+        // First, check if requirements are available
         const response = await fetch(`${API_BASE_URL}/api/jobs/view-requirements`, {
             method: 'POST',
             headers: {
@@ -76,12 +74,40 @@ async function viewRequirements(jobId) {
         showLoading(false);
         
         if (data.success) {
-            alert('Requirements: ' + (data.requirements?.requirements || 'No requirements listed'));
+            if (data.requires_payment || data.amount) {
+                // Trigger payment
+                const phoneNumber = prompt('Enter your M-PESA phone number (e.g., 0712345678):');
+                if (phoneNumber && phoneNumber.match(/^(07|2547|7)\d{8}$/)) {
+                    const paymentResult = await initiateMpesaPayment(
+                        phoneNumber,
+                        data.amount || 50,
+                        data.transaction_type || 'job_view_requirements',
+                        user.id,
+                        { jobId, userId: user.id }
+                    );
+                    
+                    if (paymentResult.success) {
+                        showNotification('STK Push sent! Check your phone.', 'success');
+                        // After payment, fetch and show requirements
+                        setTimeout(() => viewRequirements(jobId), 3000);
+                    } else {
+                        showNotification(paymentResult.message, 'error');
+                    }
+                } else {
+                    showNotification('Invalid phone number', 'error');
+                }
+            } else if (data.already_paid || data.requirements) {
+                // Already paid, show requirements
+                alert('Job Requirements:\n\n' + (data.requirements?.requirements || 'No requirements listed'));
+            } else {
+                showNotification('Unable to fetch requirements', 'error');
+            }
         } else {
             showNotification(data.message, 'error');
         }
     } catch (error) {
         showLoading(false);
+        console.error('View requirements error:', error);
         showNotification('An error occurred', 'error');
     }
 }
