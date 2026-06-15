@@ -16,6 +16,15 @@ let currentPage = 1;
 // SEARCH JOBS
 // ============================================
 
+async function viewRequirements(jobId) {
+    console.log('=== VIEW REQUIREMENTS DEBUG ===');
+    console.log('jobId:', jobId);
+    console.log('User:', getCurrentUser());
+    console.log('API_BASE_URL:', API_BASE_URL);
+    
+    // ... rest of function
+}
+
 async function searchJobs(page = 1) {
     const keyword = document.getElementById('searchKeyword')?.value || '';
     const location = document.getElementById('searchLocation')?.value || '';
@@ -112,9 +121,11 @@ function displayPagination(pagination, currentPage) {
 // ============================================
 
 async function viewRequirements(jobId) {
+    console.log('viewRequirements called with jobId:', jobId);
+    
     const user = getCurrentUser();
     if (!user) {
-        showNotification('Please login to view job requirements', 'warning');
+        showNotification('Please login to view job requirements', 'error');
         window.location.href = '/pages/login.html';
         return;
     }
@@ -122,7 +133,7 @@ async function viewRequirements(jobId) {
     showLoading(true);
     
     try {
-        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/jobs/view-requirements', {
+        const response = await fetch(`${API_BASE_URL}/api/jobs/view-requirements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -140,9 +151,7 @@ async function viewRequirements(jobId) {
             } else if (data.requires_payment) {
                 const phoneNumber = prompt('Enter your M-PESA phone number to pay KES 50:');
                 if (phoneNumber && validatePhoneNumber(phoneNumber)) {
-                    const payment = await initiateMpesaPayment(
-                        phoneNumber, 50, 'job_view_requirements', user.id, { jobId, userId: user.id }
-                    );
+                    const payment = await initiateMpesaPayment(phoneNumber, 50, 'job_view_requirements', user.id, { jobId, userId: user.id });
                     if (payment.success) {
                         showNotification('Payment successful! Viewing requirements...', 'success');
                         setTimeout(() => viewRequirements(jobId), 3000);
