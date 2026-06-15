@@ -2,42 +2,24 @@ const axios = require('axios');
 
 class TumaService {
     constructor() {
-        const environment = process.env.TUMA_ENVIRONMENT || 'sandbox';
-        
-        // Use sandbox URL for testing
-        if (environment === 'production') {
-            this.baseURL = 'https://api.tuma.co.ke';
-        } else {
-            this.baseURL = 'https://sandbox.tuma.co.ke';
-        }
-        
+        // Use the correct API URL (no separate sandbox subdomain)
+        this.baseURL = 'https://api.tuma.co.ke';
         this.businessEmail = process.env.TUMA_BUSINESS_EMAIL;
         this.apiKey = process.env.TUMA_API_KEY;
         this.callbackURL = process.env.TUMA_CALLBACK_URL;
         this.token = null;
         this.tokenExpiry = null;
         
-        console.log('=== TUMA SERVICE INITIALIZED ===');
-        console.log('Environment:', environment);
-        console.log('Base URL:', this.baseURL);
-        console.log('Business Email:', this.businessEmail);
-        console.log('API Key (first 10 chars):', this.apiKey ? this.apiKey.substring(0, 10) + '...' : 'MISSING');
+        console.log('✅ TUMA Service Initialized');
+        console.log('   Base URL:', this.baseURL);
     }
 
     async getAccessToken() {
-        // Check for existing valid token
         if (this.token && this.tokenExpiry && Date.now() < this.tokenExpiry) {
             return this.token;
         }
 
-        // Validate credentials are present
-        if (!this.businessEmail || !this.apiKey) {
-            throw new Error('TUMA credentials missing. Check TUMA_BUSINESS_EMAIL and TUMA_API_KEY in .env');
-        }
-
         try {
-            console.log('Requesting TUMA token with email:', this.businessEmail);
-            
             const response = await axios.post(`${this.baseURL}/auth/token`, {
                 email: this.businessEmail,
                 api_key: this.apiKey
@@ -48,34 +30,24 @@ class TumaService {
 
             if (response.data && response.data.success) {
                 this.token = response.data.data.token;
-                this.tokenExpiry = Date.now() + 3300000;
+                // Token expires in 24 hours (86400000 ms)
+                this.tokenExpiry = Date.now() + 86400000;
                 console.log('✅ TUMA Authentication successful');
                 return this.token;
             } else {
-                const errorMsg = response.data?.message || 'Authentication failed';
-                console.error('❌ TUMA auth failed:', errorMsg);
-                throw new Error(errorMsg);
+                throw new Error(response.data?.message || 'Authentication failed');
             }
         } catch (error) {
-            console.error('❌ TUMA Auth Error Details:', {
-                status: error.response?.status,
-                data: error.response?.data,
-                message: error.message
-            });
-            
-            // Handle specific error cases
-            if (error.response?.status === 401) {
-                throw new Error('Invalid TUMA credentials. Check your Business Email and API Key.');
-            }
-            if (error.code === 'ECONNREFUSED') {
-                throw new Error(`Cannot connect to TUMA at ${this.baseURL}. Check your internet.`);
-            }
-            if (error.response?.data?.error_code === 'IPRS_VERIFICATION_REQUIRED') {
-                throw new Error('IPRS verification required. Please complete verification in TUMA dashboard.');
-            }
-            
-            throw new Error(`TUMA authentication failed: ${error.message}`);
+            console.error('❌ TUMA Auth Error:', error.response?.data || error.message);
+            throw new Error('Failed to authenticate with TUMA');
         }
+    }
+
+    formatPhoneNumber(phoneNumber) {
+        let cleaned = phoneNumber.replace(/\D/g, '');
+        if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+        if (cleaned.startsWith('254')) cleaned = cleaned.substring(3);
+        return '254' + cleaned;
     }
 
     async initiateSTKPush(phoneNumber, amount, description, reference = null) {
@@ -121,11 +93,23 @@ class TumaService {
         }
     }
 
-    formatPhoneNumber(phoneNumber) {
-        let cleaned = phoneNumber.replace(/\D/g, '');
-        if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
-        if (cleaned.startsWith('254')) cleaned = cleaned.substring(3);
-        return '254' + cleaned;
+    async checkPaymentStatus(paymentId) {
+        try {
+            const token = await this.getAccessToken();
+            
+            const response = await axios.get(`${this.baseURL}/payment/status/${paymentId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+            
+            return response.data;
+        } catch (error) {
+            console.error('❌ Payment Status Error:', error.response?.data || error.message);
+            return { success: false, message: 'Failed to check payment status' };
+        }
     }
 }
 
