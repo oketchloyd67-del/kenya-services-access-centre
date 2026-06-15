@@ -170,42 +170,52 @@ async function pollTransactionStatus(checkoutRequestID, maxAttempts = 30, interv
 // ============================================
 
 function connectWebSocket(userId) {
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const socketUrl = `${protocol}${window.location.host}`;
+    // Check if Socket.io is loaded
+    if (typeof io === 'undefined') {
+        console.log('Socket.io not loaded, skipping WebSocket connection');
+        return;
+    }
     
-    socket = io(socketUrl, {
-        transports: ['websocket'],
-        reconnection: true,
-        reconnectionAttempts: 5
-    });
-    
-    socket.on('connect', () => {
-        console.log('WebSocket connected');
-        socket.emit('join', userId);
-    });
-    
-    socket.on('payment_success', (data) => {
-        showNotification(`Payment of KES ${data.amount} successful! Receipt: ${data.receipt}`, 'success');
-        if (window.location.pathname.includes('employer-dashboard')) {
-            location.reload();
-        }
-    });
-    
-    socket.on('application_received', (data) => {
-        showNotification(`New application received for ${data.jobTitle}`, 'info');
-    });
-    
-    socket.on('admin_notification', (data) => {
-        showNotification(data.message, 'warning');
-    });
-    
-    socket.on('disconnect', () => {
-        console.log('WebSocket disconnected');
-    });
-    
-    socket.on('connect_error', (error) => {
-        console.error('WebSocket connection error:', error);
-    });
+    try {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socketUrl = `${protocol}${window.location.host}`;
+        
+        socket = io(socketUrl, {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 5
+        });
+        
+        socket.on('connect', () => {
+            console.log('WebSocket connected');
+            socket.emit('join', userId);
+        });
+        
+        socket.on('payment_success', (data) => {
+            showNotification(`Payment of KES ${data.amount} successful! Receipt: ${data.receipt}`, 'success');
+            if (window.location.pathname.includes('employer-dashboard')) {
+                location.reload();
+            }
+        });
+        
+        socket.on('application_received', (data) => {
+            showNotification(`New application received for ${data.jobTitle}`, 'info');
+        });
+        
+        socket.on('admin_notification', (data) => {
+            showNotification(data.message, 'warning');
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('WebSocket disconnected');
+        });
+        
+        socket.on('connect_error', (error) => {
+            console.error('WebSocket connection error:', error);
+        });
+    } catch (error) {
+        console.error('WebSocket setup error:', error);
+    }
 }
 
 // ============================================
@@ -378,10 +388,12 @@ function startCountdown(expiryDate, elementId, onExpire) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    const user = getCurrentUser();
+     const user = getCurrentUser();
     if (user) {
         currentUser = user;
-        connectWebSocket(user.id);
+        if (typeof io !== 'undefined') {
+            connectWebSocket(user.id);
+        }
         
         const navRight = document.querySelector('.nav-right');
         if (navRight) {
