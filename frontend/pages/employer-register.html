@@ -773,18 +773,18 @@
             try {
                 const token = localStorage.getItem('authToken');
                 const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/employers/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        userId: userId,
-                        company_name: document.getElementById('companyName').value,
-                        business_reg_number: document.getElementById('businessRegNumber').value,
-                        company_address: document.getElementById('companyAddress').value
-                    })
-                });
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    },
+    body: JSON.stringify({
+        userId: userId,  // Make sure this variable exists
+        company_name: document.getElementById('companyName').value,
+        business_reg_number: document.getElementById('businessRegNumber').value,
+        company_address: document.getElementById('companyAddress').value
+    })
+});
                 
                 const data = await response.json();
                 showLoading(false);

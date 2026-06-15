@@ -18,6 +18,7 @@ const jobRoutes = require('./routes/jobs');
 const serviceRoutes = require('./routes/services');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
+const reviewRoutes = require('./routes/reviews');
 
 // ===== INITIALIZE APP =====
 const app = express();
@@ -63,6 +64,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
+app.use('/api/reviews', reviewRoutes);
 
 // ===== STATIC FILES =====
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -132,6 +134,28 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // ===== CRON JOBS =====
+// Delete incomplete employer registrations older than 1 hour
+cron.schedule('0 * * * *', async () => {
+    try {
+        const result = await pool.query(`
+            DELETE FROM users 
+            WHERE id IN (
+                SELECT u.id
+                FROM users u
+                LEFT JOIN employers e ON u.id = e.user_id
+                WHERE u.role = 'employer' 
+                AND e.user_id IS NULL
+                AND u.created_at < NOW() - INTERVAL '1 hour'
+            )
+        `);
+        if (result.rowCount > 0) {
+            console.log(`Cleaned up ${result.rowCount} incomplete employer registrations`);
+        }
+    } catch (error) {
+        console.error('Error cleaning up incomplete registrations:', error);
+    }
+});
+
 // Check expired subscriptions every hour
 cron.schedule('0 * * * *', async () => {
     console.log('Running subscription expiry check...', new Date().toISOString());
