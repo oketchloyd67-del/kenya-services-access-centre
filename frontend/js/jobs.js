@@ -145,13 +145,14 @@ async function viewRequirements(jobId) {
                 // Trigger payment
                 const phoneNumber = prompt('Enter your M-PESA phone number (e.g., 0712345678):');
                 if (phoneNumber && phoneNumber.match(/^(07|2547|7)\d{8}$/)) {
-                    const paymentResult = await initiateMpesaPayment(
-                        phoneNumber,
-                        data.amount || 50,
-                        data.transaction_type || 'job_view_requirements',
-                        user.id,
-                        { jobId, userId: user.id }
-                    );
+                   // ... inside the viewRequirements function, after the user provides their phone number
+const paymentResult = await initiateMpesaPayment(
+    phoneNumber,             // 1. phoneNumber
+    50,                      // 2. amount
+    'job_view_requirements', // 3. transactionType (MUST be a string from the valid list)
+    user.id,                 // 4. userId
+    { jobId: jobId }         // 5. metadata (must be an object)
+);
                     
                     if (paymentResult.success) {
                         showNotification('STK Push sent! Check your phone.', 'success');
