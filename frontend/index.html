@@ -461,31 +461,33 @@
         }
     }
 
-    async function loadReviews() {
+   async function loadReviews() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/reviews`);
+        const data = await response.json();
+        
         const container = document.getElementById('reviewsContainer');
-        try {
-            const res = await fetch(`${API_BASE}/api/reviews`);
-            const data = await res.json();
-            if (data.success && data.reviews?.length) {
-                container.innerHTML = data.reviews.map(r => `
-                    <div class="bg-white p-6 rounded-2xl review-card">
-                        <div class="flex items-center gap-1 text-amber-400 mb-3">
-                            ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}
-                        </div>
-                        <p class="text-gray-700 text-sm italic">"${r.comment}"</p>
-                        <div class="mt-4 flex items-center justify-between">
-                            <span class="font-semibold text-gray-800">${r.user_name}</span>
-                            <span class="text-xs text-gray-400">${new Date(r.created_at).toLocaleDateString()}</span>
-                        </div>
+        if (data.success && data.reviews && data.reviews.length > 0) {
+            container.innerHTML = data.reviews.map(review => `
+                <div class="bg-white p-6 rounded-2xl review-card">
+                    <div class="flex items-center gap-1 text-amber-400 mb-3">
+                        ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
                     </div>
-                `).join('');
-            } else {
-                container.innerHTML = `<div class="col-span-full text-center text-gray-400 py-8">No reviews yet. Be the first!</div>`;
-            }
-        } catch {
-            container.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Failed to load reviews</div>`;
+                    <p class="text-gray-700 text-sm italic">"${review.comment}"</p>
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="font-semibold text-gray-800">${review.user_name}</span>
+                        <span class="text-xs text-gray-400">${new Date(review.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `<div class="col-span-full text-center text-gray-400 py-8">No reviews yet. Be the first!</div>`;
         }
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        container.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Failed to load reviews</div>`;
     }
+}
 
     document.getElementById('mobileMenuBtn').addEventListener('click', function() {
         document.getElementById('mobileMenu').classList.toggle('hidden');
