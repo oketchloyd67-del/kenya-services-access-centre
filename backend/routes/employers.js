@@ -289,4 +289,106 @@ router.get('/subscription-status/:employerId', async (req, res) => {
     }
 });
 
+// ============================================
+// EDIT JOB - PUT /api/employers/edit-job/:jobId
+// ============================================
+router.put('/edit-job/:jobId', [
+    body('title').notEmpty().trim(),
+    body('description').notEmpty(),
+    body('requirements').notEmpty()
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    
+    const { jobId } = req.params;
+    const { title, description, requirements, location, salary_range, employment_type, deadline } = req.body;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(
+            `UPDATE jobs 
+             SET title = $1, description = $2, requirements = $3, location = $4, 
+                 salary_range = $5, employment_type = $6, expires_at = $7
+             WHERE id = $8 RETURNING *`,
+            [title, description, requirements, location, salary_range, employment_type, deadline, jobId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+        
+        res.json({ success: true, message: 'Job updated successfully', job: result.rows[0] });
+    } catch (error) {
+        console.error('Edit job error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// DELETE JOB - DELETE /api/employers/delete-job/:jobId
+// ============================================
+router.delete('/delete-job/:jobId', async (req, res) => {
+    const { jobId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query('DELETE FROM jobs WHERE id = $1 RETURNING id', [jobId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+        
+        res.json({ success: true, message: 'Job deleted successfully' });
+    } catch (error) {
+        console.error('Delete job error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// UPDATE APPLICATION STATUS - PUT /api/employers/application-status/:applicationId
+// ============================================
+router.put('/application-status/:applicationId', [
+    body('status').isIn(['pending', 'accepted', 'rejected'])
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    
+    const { applicationId } = req.params;
+    const { status } = req.body;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(
+            `UPDATE job_applications 
+             SET status = $1, viewed_at = NOW()
+             WHERE id = $2 RETURNING job_seeker_email, job_seeker_name, job_id`,
+            [status, applicationId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+        
+        const app = result.rows[0];
+        
+        // Send email to job seeker
+        const emailUtil = require('../utils/email');
+        await emailUtil.sendApplicationStatusUpdate(
+            app.job_seeker_email,
+            app.job_seeker_name,
+            status
+        );
+        
+        res.json({ success: true, message: `Application ${status}` });
+    } catch (error) {
+        console.error('Update application status error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 module.exports = router;

@@ -1,3 +1,59 @@
+// Add these at the top of payments.js
+const emailUtil = require('../utils/email');
+
+// In the callback section, after successful payment:
+
+// For cv_upload (job application)
+case 'cv_upload':
+    await db.query(
+        `UPDATE job_applications 
+         SET cv_upload_fee_paid = true, 
+             total_amount_paid = total_amount_paid + 50,
+             status = 'submitted'
+         WHERE id = $1 AND job_seeker_id = $2`,
+        [txMetadata.applicationId, tx.user_id]
+    );
+    
+    // Send email to employer
+    if (txMetadata.employerEmail && txMetadata.jobTitle && txMetadata.applicantName) {
+        await emailUtil.sendApplicationNotification(
+            txMetadata.employerEmail,
+            txMetadata.jobTitle,
+            txMetadata.applicantName,
+            txMetadata.cvPath
+        );
+    }
+    break;
+
+// For service_connection
+case 'service_connection':
+    await db.query(
+        `UPDATE service_connections 
+         SET fee_paid = true, 
+             amount_paid = 100,
+             status = 'connected',
+             connected_at = NOW()
+         WHERE service_provider_id = $1 AND seeker_phone = $2`,
+        [txMetadata.providerId, txMetadata.seeker_phone]
+    );
+    await db.query(
+        `UPDATE service_providers 
+         SET total_connections = total_connections + 1
+         WHERE user_id = $1`,
+        [txMetadata.providerId]
+    );
+    
+    // Send email to service provider
+    if (txMetadata.providerEmail && txMetadata.seeker_name && txMetadata.seeker_phone) {
+        await emailUtil.sendConnectionNotification(
+            txMetadata.providerEmail,
+            txMetadata.seeker_name,
+            txMetadata.seeker_phone,
+            txMetadata.seeker_email
+        );
+    }
+    break;
+    
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');

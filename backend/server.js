@@ -19,6 +19,7 @@ const serviceRoutes = require('./routes/services');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
 const reviewRoutes = require('./routes/reviews');
+const passwordRoutes = require('./routes/password');
 
 // ===== INITIALIZE APP =====
 const app = express();
@@ -38,7 +39,14 @@ const limiter = rateLimit({
     message: { success: false, message: 'Too many requests, please try again later.' }
 });
 
+const notificationRoutes = require('./routes/notifications');
+const authMiddleware = require('./middleware/auth');
+
+// Add this before existing routes
+app.use('/api/notifications', notificationRoutes);
 // ===== MANUAL CORS HEADERS (BEFORE ANY ROUTES) =====
+app.use('/api/password', passwordRoutes);
+app.use('/api/notifications', authMiddleware, notificationRoutes);
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', 'https://kenyaservices-accesscentre-emph.onrender.com');
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -248,6 +256,28 @@ process.on('SIGTERM', () => {
             process.exit(0);
         });
     });
+});
+
+// Job Seeker Applications
+router.get('/job-seeker/applications/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(`
+            SELECT ja.*, j.title as job_title, j.location, e.company_name, ja.status
+            FROM job_applications ja
+            JOIN jobs j ON ja.job_id = j.id
+            LEFT JOIN employers e ON j.employer_id = e.user_id
+            WHERE ja.job_seeker_id = $1
+            ORDER BY ja.applied_at DESC
+        `, [userId]);
+        
+        res.json({ success: true, applications: result.rows });
+    } catch (error) {
+        console.error('Get applications error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
 });
 
 module.exports = { app, pool, io };

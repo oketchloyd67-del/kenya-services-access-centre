@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Role - Kenya Services Access Centre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .navbar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-container { max-width: 1280px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .logo-img { height: 40px; width: auto; object-fit: contain; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #4a5568; font-weight: 500; transition: color 0.3s; }
+        .nav-links a:hover { color: #4f46e5; }
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: #4a5568; }
+        .mobile-menu { display: none; flex-direction: column; background: white; padding: 20px; gap: 15px; border-top: 1px solid #e2e8f0; }
+        .mobile-menu.active { display: flex; }
+        @media (max-width: 768px) { .nav-links { display: none; } .mobile-menu-btn { display: block; } }
+
+        .role-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+        .role-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .role-card.selected {
+            border-color: #4f46e5;
+            background: #f8f4ff;
+        }
+        .role-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .role-icon.employer { background: #e9d5ff; color: #4f46e5; }
+        .role-icon.job-seeker { background: #d1fae5; color: #059669; }
+        .role-icon.service-provider { background: #dbeafe; color: #2563eb; }
+
+        .footer { background: #1a202c; color: white; padding: 20px; text-align: center; margin-top: 60px; }
+        .footer p { font-size: 14px; color: #a0aec0; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="../index.html" class="flex items-center gap-3">
+            <img src="../images/logo.png" alt="Kenya Services" class="logo-img" onerror="this.style.display='none'">
+            <span class="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline">Kenya Services</span>
+        </a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="login.html">Login</a>
+        </div>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="../index.html">Home</a>
+        <a href="login.html">Login</a>
+    </div>
+</nav>
+
+<div class="min-h-screen flex items-center justify-center py-20 px-4" style="padding-top:120px;">
+    <div class="max-w-4xl w-full">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800">Choose Your Role</h2>
+            <p class="text-gray-500 mt-2">Select how you want to use Kenya Services Access Centre</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div onclick="window.location.href='employer-register.html'" class="role-card bg-white rounded-2xl p-8 text-center shadow-md">
+                <div class="role-icon employer">
+                    <i class="fas fa-building fa-3x"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Employer</h3>
+                <p class="text-gray-500 text-sm mt-2">Post jobs, find talent, and grow your team</p>
+                <ul class="text-left text-sm text-gray-600 mt-4 space-y-2">
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Post job vacancies</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Receive applications</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Manage your team</li>
+                </ul>
+                <button class="mt-6 px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:shadow-lg transition shadow-md">Register as Employer</button>
+            </div>
+
+            <div onclick="window.location.href='jobseeker-register.html'" class="role-card bg-white rounded-2xl p-8 text-center shadow-md">
+                <div class="role-icon job-seeker">
+                    <i class="fas fa-user-graduate fa-3x"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Job Seeker</h3>
+                <p class="text-gray-500 text-sm mt-2">Find your dream job and build your career</p>
+                <ul class="text-left text-sm text-gray-600 mt-4 space-y-2">
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Search and apply for jobs</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Upload your CV</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Get employer details</li>
+                </ul>
+                <button class="mt-6 px-6 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition shadow-md">Register as Job Seeker</button>
+            </div>
+
+            <div onclick="window.location.href='service-provider-register.html'" class="role-card bg-white rounded-2xl p-8 text-center shadow-md">
+                <div class="role-icon service-provider">
+                    <i class="fas fa-tools fa-3x"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Service Provider</h3>
+                <p class="text-gray-500 text-sm mt-2">Offer your services and connect with customers</p>
+                <ul class="text-left text-sm text-gray-600 mt-4 space-y-2">
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> List your services</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Get customer connections</li>
+                    <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Grow your business</li>
+                </ul>
+                <button class="mt-6 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-md">Register as Service Provider</button>
+            </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <p class="text-gray-600">
+                Already have an account? 
+                <a href="login.html" class="text-indigo-600 hover:underline font-medium">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="footer-container"><div class="footer-bottom"><p>&copy; 2025 Kenya Services Access Centre. All rights reserved.</p></div></div>
+</footer>
+
+<script>
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.toggle('active');
+    });
+</script>
+</body>
+</html>

@@ -124,6 +124,28 @@ router.get('/test', async (req, res) => {
     res.json({ success: true, message: 'Jobs API is working' });
 });
 
+// GET /api/job-seeker/applications/:userId
+router.get('/applications/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(`
+            SELECT ja.*, j.title as job_title, j.location, e.company_name, ja.status
+            FROM job_applications ja
+            JOIN jobs j ON ja.job_id = j.id
+            LEFT JOIN employers e ON j.employer_id = e.user_id
+            WHERE ja.job_seeker_id = $1
+            ORDER BY ja.applied_at DESC
+        `, [userId]);
+        
+        res.json({ success: true, applications: result.rows });
+    } catch (error) {
+        console.error('Get applications error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 // ============================================
 // POST /api/jobs/view-requirements
 // ============================================

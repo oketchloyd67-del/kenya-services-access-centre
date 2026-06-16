@@ -204,6 +204,88 @@ async function sendPasswordReset(email, name, resetToken) {
     return await sendEmail(email, subject, html);
 }
 
+// Send connection notification to service provider
+async function sendConnectionNotification(providerEmail, seekerName, seekerPhone, seekerEmail) {
+    const subject = 'New Client Connection - Kenya Services Access Centre';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #4a5568;">New Client Connection!</h2>
+            <p>A client has connected with you through Kenya Services Access Centre.</p>
+            <p><strong>Client Name:</strong> ${seekerName}</p>
+            <p><strong>Client Phone:</strong> ${seekerPhone}</p>
+            <p><strong>Client Email:</strong> ${seekerEmail}</p>
+            <p>Please reach out to them at your earliest convenience.</p>
+            <hr>
+            <p style="font-size: 12px; color: #718096;">Kenya Services Access Centre</p>
+        </div>
+    `;
+    return await sendEmail(providerEmail, subject, html);
+}
+
+// ============================================
+// SEND PASSWORD RESET EMAIL
+// ============================================
+async function sendPasswordReset(email, name, resetToken) {
+    const resetUrl = `${process.env.FRONTEND_URL}/pages/reset-password.html?token=${resetToken}`;
+    const subject = 'Password Reset - Kenya Services Access Centre';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #4a5568;">Password Reset Request</h2>
+            <p>Dear ${name},</p>
+            <p>We received a request to reset your password. Click the button below to create a new password:</p>
+            <a href="${resetUrl}" 
+               style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 20px 0;">
+                Reset Password
+            </a>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <hr>
+            <p style="font-size: 12px; color: #718096;">Kenya Services Access Centre</p>
+        </div>
+    `;
+    return await sendEmail(email, subject, html);
+}
+
+// ============================================
+// SEND APPLICATION STATUS UPDATE
+// ============================================
+async function sendApplicationStatusUpdate(email, name, status) {
+    const statusMessages = {
+        accepted: 'Congratulations! Your application has been accepted. The employer will contact you shortly.',
+        rejected: 'We regret to inform you that your application was not selected at this time.'
+    };
+    
+    const subject = `Application ${status.charAt(0).toUpperCase() + status.slice(1)} - Kenya Services Access Centre`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #4a5568;">Application Update</h2>
+            <p>Dear ${name},</p>
+            <p>Your job application has been <strong>${status}</strong>.</p>
+            <p>${statusMessages[status] || 'Please check your dashboard for more details.'}</p>
+            <a href="${process.env.FRONTEND_URL}/pages/jobseeker-dashboard.html" 
+               style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 20px 0;">
+                View Dashboard
+            </a>
+            <hr>
+            <p style="font-size: 12px; color: #718096;">Kenya Services Access Centre</p>
+        </div>
+    `;
+    return await sendEmail(email, subject, html);
+}
+
+// Export the new functions
+module.exports = {
+    sendEmail,
+    sendVerificationApproval,
+    sendVerificationRejection,
+    sendApplicationNotification,
+    sendWelcomeEmail,
+    sendPaymentConfirmation,
+    sendPasswordReset,
+    sendApplicationStatusUpdate,
+    sendConnectionNotification
+};
+
 module.exports = {
     sendEmail,
     sendVerificationApproval,

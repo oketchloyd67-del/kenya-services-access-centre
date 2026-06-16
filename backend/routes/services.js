@@ -234,4 +234,56 @@ router.get('/categories/list', async (req, res) => {
     }
 });
 
+// PUT /api/services/update - Update service provider profile
+router.put('/update', [
+    body('userId').isUUID(),
+    body('business_name').notEmpty().trim(),
+    body('service_category').notEmpty(),
+    body('location').notEmpty()
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    
+    const { userId, business_name, service_category, sub_category, location, description, price_range } = req.body;
+    const db = req.app.get('db');
+    
+    try {
+        await db.query(
+            `UPDATE service_providers 
+             SET business_name = $1, service_category = $2, sub_category = $3, 
+                 location = $4, description = $5, price_range = $6
+             WHERE user_id = $7`,
+            [business_name, service_category, sub_category, location, description, price_range, userId]
+        );
+        
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+        console.error('Update service provider error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// GET /api/service-provider/connections/:userId - Get connections for service provider
+router.get('/connections/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(
+            `SELECT seeker_name, seeker_phone, seeker_email, connected_at 
+             FROM service_connections 
+             WHERE service_provider_id = $1 AND fee_paid = true
+             ORDER BY connected_at DESC`,
+            [userId]
+        );
+        
+        res.json({ success: true, connections: result.rows });
+    } catch (error) {
+        console.error('Get connections error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 module.exports = router;

@@ -5,435 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Kenya Services Access Centre</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-        }
-
-        /* Sidebar */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 280px;
-            height: 100%;
+            position: fixed; top: 0; left: 0; width: 280px; height: 100%;
             background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            color: white; transition: transform 0.3s ease; z-index: 1000; overflow-y: auto;
         }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .sidebar-header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .sidebar-header p {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
-
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-
+        .sidebar-header { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-header p { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+        .sidebar-nav { padding: 20px 0; }
         .sidebar-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 24px;
-            color: #cbd5e1;
-            text-decoration: none;
-            transition: all 0.2s;
-            cursor: pointer;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 500;
+            display: flex; align-items: center; padding: 12px 24px; color: #cbd5e1;
+            text-decoration: none; transition: all 0.2s; cursor: pointer; gap: 12px; font-size: 14px; font-weight: 500;
         }
-
-        .sidebar-item i {
-            width: 20px;
-            font-size: 16px;
-        }
-
-        .sidebar-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .sidebar-item.active {
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            color: white;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 280px;
-            min-height: 100vh;
-        }
-
-        /* Top Bar */
-        .top-bar {
-            background: white;
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 99;
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .admin-name {
-            font-weight: 500;
-            color: #334155;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 24px;
-        }
-
-        /* Stat Cards */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-        }
-
-        .stat-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-top: 8px;
-        }
-
-        /* Data Cards */
-        .data-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .card-header h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        /* Tables */
-        .data-table {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 14px 16px;
-            background: #f8fafc;
-            font-weight: 600;
-            font-size: 13px;
-            color: #475569;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        td {
-            padding: 12px 16px;
-            font-size: 14px;
-            color: #334155;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        tr:hover {
-            background: #f8fafc;
-        }
-
-        /* Buttons */
-        .btn-sm {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-            margin: 0 4px;
-        }
-
-        .btn-approve {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-approve:hover {
-            background: #059669;
-        }
-
-        .btn-reject {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-reject:hover {
-            background: #dc2626;
-        }
-
-        .btn-delete {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #dc2626;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
+        .sidebar-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-item.active { background: linear-gradient(90deg, #3b82f6, #8b5cf6); color: white; }
+        .sidebar-item i { width: 20px; font-size: 16px; }
+        .sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content { margin-left: 280px; min-height: 100vh; }
+        .top-bar { background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 99; }
+        .page-title { font-size: 24px; font-weight: 700; color: #1e293b; }
+        .admin-info { display: flex; align-items: center; gap: 16px; }
+        .admin-name { font-weight: 500; color: #334155; }
+        .admin-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .content-area { padding: 24px; }
+        
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .stat-title { font-size: 13px; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #1e293b; margin-top: 8px; }
+        
+        .data-card { background: white; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; overflow: hidden; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .card-header h3 { font-size: 18px; font-weight: 600; color: #1e293b; }
+        
+        .data-table { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 16px; background: #f8fafc; font-weight: 600; font-size: 13px; color: #475569; border-bottom: 1px solid #e5e7eb; }
+        td { padding: 12px 16px; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+        tr:hover { background: #f8fafc; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .badge-success { background: #dcfce7; color: #166534; }
         .badge-warning { background: #ffedd5; color: #9a3412; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
         .badge-info { background: #dbeafe; color: #1e40af; }
-
-        /* Charts */
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .chart-card h4 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #334155;
-        }
-
-        /* Review Item */
-        .review-item {
-            padding: 16px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .review-stars {
-            color: #fbbf24;
-            font-size: 14px;
-        }
-
-        .review-user {
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .review-date {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-
-        .review-comment {
-            color: #475569;
-            font-size: 14px;
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
-        .review-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            max-width: 400px;
-            width: 90%;
-            padding: 24px;
-        }
-
-        .modal-content h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        /* Mobile Menu */
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #334155;
-        }
-
+        
+        .btn-sm { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; margin: 0 4px; }
+        .btn-approve { background: #10b981; color: white; }
+        .btn-approve:hover { background: #059669; }
+        .btn-reject { background: #ef4444; color: white; }
+        .btn-reject:hover { background: #dc2626; }
+        .btn-delete { background: #ef4444; color: white; }
+        .btn-delete:hover { background: #dc2626; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 8px 16px; border-radius: 10px; font-weight: 500; border: none; cursor: pointer; }
+        .btn-view { background: #6b7280; color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: none; cursor: pointer; }
+        .btn-view:hover { background: #4b5563; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 24px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 30px; }
+        .modal-content h3 { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        .modal-body { display: grid; gap: 12px; }
+        .modal-body img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 8px; }
+        
+        .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px; }
+        .chart-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .chart-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #334155; }
+        
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 20px; cursor: pointer; color: #334155; }
+        
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .mobile-menu-btn {
-                display: block;
-            }
-            .stat-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .chart-grid {
-                grid-template-columns: 1fr;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-menu-btn { display: block; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .chart-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -452,15 +110,15 @@
         <a onclick="showSection('dashboard')" class="sidebar-item active" data-section="dashboard">
             <i class="fas fa-tachometer-alt"></i> Dashboard
         </a>
+        <a onclick="showSection('verifications')" class="sidebar-item" data-section="verifications">
+            <i class="fas fa-user-check"></i> Verifications
+            <span id="pendingBadge" class="badge badge-danger" style="margin-left:auto;display:none;">0</span>
+        </a>
         <a onclick="showSection('users')" class="sidebar-item" data-section="users">
             <i class="fas fa-users"></i> Users
-            <span id="pendingUsersBadge" class="badge badge-danger" style="margin-left: auto; display: none;">0</span>
         </a>
         <a onclick="showSection('employers')" class="sidebar-item" data-section="employers">
             <i class="fas fa-building"></i> Employers
-        </a>
-        <a onclick="showSection('jobSeekers')" class="sidebar-item" data-section="jobSeekers">
-            <i class="fas fa-user-graduate"></i> Job Seekers
         </a>
         <a onclick="showSection('serviceProviders')" class="sidebar-item" data-section="serviceProviders">
             <i class="fas fa-tools"></i> Service Providers
@@ -473,10 +131,6 @@
         </a>
         <a onclick="showSection('reviews')" class="sidebar-item" data-section="reviews">
             <i class="fas fa-star"></i> Reviews
-            <span id="pendingReviewsBadge" class="badge badge-danger" style="margin-left: auto; display: none;">0</span>
-        </a>
-        <a onclick="showSection('logs')" class="sidebar-item" data-section="logs">
-            <i class="fas fa-file-alt"></i> System Logs
         </a>
         <a onclick="showSection('settings')" class="sidebar-item" data-section="settings">
             <i class="fas fa-cog"></i> Settings
@@ -500,29 +154,42 @@
     <div class="content-area" id="contentArea"></div>
 </main>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal">
+<!-- Verification Detail Modal -->
+<div id="verificationModal" class="modal">
     <div class="modal-content">
-        <h3>Confirm Delete</h3>
-        <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+        <h3>Verify User</h3>
+        <div class="modal-body" id="verificationDetails">
+            <p><strong>Name:</strong> <span id="vName"></span></p>
+            <p><strong>Email:</strong> <span id="vEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="vPhone"></span></p>
+            <p><strong>Role:</strong> <span id="vRole"></span></p>
+            <p><strong>Company:</strong> <span id="vCompany"></span></p>
+            <p><strong>ID Number:</strong> <span id="vIdNumber"></span></p>
+            <div><label>ID Photo (Front)</label><img id="vIdFront" src="" alt="ID Front"></div>
+            <div><label>ID Photo (Back)</label><img id="vIdBack" src="" alt="ID Back"></div>
+            <div><label>Business Certificate</label><img id="vCert" src="" alt="Certificate"></div>
+        </div>
         <div class="modal-buttons">
-            <button class="btn-sm" style="background:#cbd5e1; color:#334155;" onclick="closeDeleteModal()">Cancel</button>
-            <button class="btn-sm btn-delete" id="confirmDeleteBtn">Delete</button>
+            <button onclick="closeVerificationModal()" class="btn-sm" style="background:#cbd5e1;color:#334155;">Cancel</button>
+            <button onclick="processVerification(true)" class="btn-sm btn-approve">Approve</button>
+            <button onclick="processVerification(false)" class="btn-sm btn-reject">Reject</button>
         </div>
     </div>
+    const notificationRoutes = require('./routes/notifications');
+
+// Add this before existing routes
+app.use('/api/notifications', notificationRoutes);
 </div>
 
 <script>
     const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
     let authToken = localStorage.getItem('authToken');
     let currentUserId = null;
-    let deleteTargetId = null;
     let revenueChart = null;
     let usersChart = null;
 
     function getCurrentUser() {
-        const userStr = localStorage.getItem('user');
-        return userStr ? JSON.parse(userStr) : null;
+        try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
     }
 
     function logout() {
@@ -531,12 +198,14 @@
         window.location.href = 'login.html';
     }
 
-    function showNotification(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
-        toast.innerHTML = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+    function showToast(msg, type = 'success') {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const el = document.createElement('div');
+        el.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
     }
 
     function escapeHtml(text) {
@@ -546,49 +215,28 @@
         return div.innerHTML;
     }
 
-    function showDeleteModal(userId) {
-        deleteTargetId = userId;
-        document.getElementById('deleteModal').classList.add('active');
-    }
-
-    function closeDeleteModal() {
-        deleteTargetId = null;
-        document.getElementById('deleteModal').classList.remove('active');
-    }
-
-    async function deleteUser() {
-        if (!deleteTargetId) return;
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/users/${deleteTargetId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${authToken}` }
-            });
-            const data = await response.json();
-            if (data.success) {
-                showNotification('User deleted successfully', 'success');
-                closeDeleteModal();
-                showSection('users');
-            } else {
-                showNotification(data.message || 'Delete failed', 'error');
+    function showLoading(show) {
+        let overlay = document.getElementById('loadingOverlay');
+        if (show) {
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'loadingOverlay';
+                overlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]';
+                overlay.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center shadow-2xl"><div class="spinner"></div><p class="mt-4 text-gray-600 font-medium">Loading...</p></div>`;
+                document.body.appendChild(overlay);
             }
-        } catch (error) {
-            showNotification('Error deleting user', 'error');
-        }
+        } else if (overlay) overlay.remove();
     }
-
-    document.getElementById('confirmDeleteBtn').onclick = deleteUser;
 
     const sections = {
         dashboard: getDashboardHTML,
+        verifications: getVerificationsHTML,
         users: getUsersHTML,
         employers: getEmployersHTML,
-        jobSeekers: getJobSeekersHTML,
         serviceProviders: getServiceProvidersHTML,
         jobs: getJobsHTML,
         transactions: getTransactionsHTML,
         reviews: getReviewsHTML,
-        logs: getLogsHTML,
         settings: getSettingsHTML
     };
 
@@ -610,13 +258,13 @@
         }
     }
 
-    // Dashboard Section
+    // DASHBOARD
     async function getDashboardHTML() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
-            const data = await response.json();
+            const data = await res.json();
             const dash = data.dashboard || {};
             
             return `
@@ -630,98 +278,263 @@
                     <div class="chart-card"><h4>Revenue Overview</h4><canvas id="revenueChart" height="200"></canvas></div>
                     <div class="chart-card"><h4>User Registrations</h4><canvas id="usersChart" height="200"></canvas></div>
                 </div>
-                <div class="data-card"><div class="card-header"><h3>Recent Transactions</h3></div><div class="data-table"><table><thead><tr><th>Receipt</th><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentTransactions">${(dash.recent_transactions || []).map(t => `<tr><td>${t.mpesa_receipt || t.id.slice(0,8)}</td><td>${t.full_name || 'N/A'}</td><td>${t.transaction_type?.replace(/_/g,' ')}</td><td>KES ${t.amount}</td><td><span class="badge ${t.status === 'completed' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td><td>${new Date(t.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table></div></div>
+                <div class="data-card"><div class="card-header"><h3>Recent Transactions</h3></div><div class="data-table"><table><thead><tr><th>Receipt</th><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>${(dash.recent_transactions || []).map(t => `<tr><td>${t.mpesa_receipt || t.id.slice(0,8)}</td><td>${t.full_name || 'N/A'}</td><td>${t.transaction_type?.replace(/_/g,' ')}</td><td>KES ${t.amount}</td><td><span class="badge ${t.status === 'completed' ? 'badge-success' : 'badge-warning'}">${t.status}</span></td><td>${new Date(t.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table></div></div>
             `;
         } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading dashboard</div>'; }
     }
 
-    // Users Section with Delete Button
-    async function getUsersHTML() {
+    // VERIFICATIONS
+    async function getVerificationsHTML() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/pending-verifications`, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
-            const data = await response.json();
-            return `
-                <div class="data-card"><div class="card-header"><h3>All Users</h3></div><div class="data-table"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Verified</th><th>Actions</th></tr></thead><tbody>${(data.users || []).map(user => `<tr><td>${escapeHtml(user.full_name)}</td><td>${escapeHtml(user.email)}</td><td>${user.phone}</td><td><span class="badge badge-info">${user.role}</span></td><td>${user.is_verified ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td><td>${!user.is_verified ? `<button class="btn-sm btn-approve" onclick="verifyUser('${user.id}', true)">Verify</button>` : ''}<button class="btn-sm btn-delete" onclick="showDeleteModal('${user.id}')">Delete</button></td></tr>`).join('')}</tbody></table></div></div>
-            `;
-        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading users</div>'; }
-    }
-
-    // Reviews Section
-    async function getReviewsHTML() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/reviews/pending`, {
-                headers: { 'Authorization': `Bearer ${authToken}` }
-            });
-            const data = await response.json();
-            const reviews = data.reviews || [];
+            const data = await res.json();
+            const verifications = data.verifications || [];
             
-            if (reviews.length === 0) {
-                return `<div class="data-card"><div class="card-header"><h3>Pending Reviews</h3></div><div class="text-center py-12 text-gray-500">No pending reviews</div></div>`;
+            if (verifications.length === 0) {
+                return `<div class="data-card"><div class="card-header"><h3>Pending Verifications</h3></div><div class="text-center py-12 text-gray-500">No pending verifications</div></div>`;
             }
             
             return `
-                <div class="data-card"><div class="card-header"><h3>Pending Reviews (${reviews.length})</h3></div>
-                ${reviews.map(review => `
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div>
-                                <span class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span>
-                                <span class="review-user">${escapeHtml(review.user_name)}</span>
-                            </div>
-                            <span class="review-date">${new Date(review.created_at).toLocaleString()}</span>
-                        </div>
-                        <div class="review-comment">${escapeHtml(review.comment)}</div>
-                        <div class="review-actions">
-                            <button class="btn-sm btn-approve" onclick="approveReview('${review.id}', true)">✓ Approve</button>
-                            <button class="btn-sm btn-reject" onclick="approveReview('${review.id}', false)">✗ Reject</button>
-                        </div>
-                    </div>
-                `).join('')}</div>
+                <div class="data-card"><div class="card-header"><h3>Pending Verifications (${verifications.length})</h3></div>
+                <div class="data-table"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Company/Business</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>
+                ${verifications.map(u => `<tr><td>${escapeHtml(u.full_name)}</td><td>${escapeHtml(u.email)}</td><td><span class="badge badge-info">${u.role}</span></td><td>${escapeHtml(u.company_name || u.provider_business_name || 'N/A')}</td><td>${new Date(u.created_at).toLocaleDateString()}</td><td><button class="btn-sm btn-approve" onclick="openVerificationModal('${u.id}')">View</button></td></tr>`).join('')}
+                </tbody></table></div></div>
             `;
-        } catch(e) { 
-            return '<div class="text-center py-12 text-red-500">Error loading reviews</div>';
-        }
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading verifications</div>'; }
     }
 
-    // Other section functions
-    async function getEmployersHTML() { return '<div class="data-card"><div class="card-header"><h3>Employers</h3></div><div class="text-center py-12">Loading...</div></div>'; }
-    async function getJobSeekersHTML() { return '<div class="data-card"><div class="card-header"><h3>Job Seekers</h3></div><div class="text-center py-12">Loading...</div></div>'; }
-    async function getServiceProvidersHTML() { return '<div class="data-card"><div class="card-header"><h3>Service Providers</h3></div><div class="text-center py-12">Loading...</div></div>'; }
-    async function getJobsHTML() { return '<div class="data-card"><div class="card-header"><h3>Jobs</h3></div><div class="text-center py-12">Loading...</div></div>'; }
-    async function getTransactionsHTML() { return '<div class="data-card"><div class="card-header"><h3>Transactions</h3></div><div class="text-center py-12">Loading...</div></div>'; }
-    async function getLogsHTML() { return '<div class="data-card"><div class="card-header"><h3>System Logs</h3></div><div class="text-center py-12">Log viewer coming soon</div></div>'; }
-    async function getSettingsHTML() { return '<div class="data-card"><div class="card-header"><h3>Settings</h3></div><div class="text-center py-12">Settings panel coming soon</div></div>'; }
+    async function exportUsersCSV() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/export/users`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showToast('Export successful', 'success');
+    } catch(e) { showToast('Export failed', 'error'); }
+}
 
-    async function verifyUser(userId, approved) {
+async function exportTransactionsCSV() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/export/transactions`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showToast('Export successful', 'success');
+    } catch(e) { showToast('Export failed', 'error'); }
+}
+
+    function openVerificationModal(userId) {
+        currentUserId = userId;
+        fetch(`${API_BASE_URL}/api/admin/verification/${userId}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const v = data.verification;
+                document.getElementById('vName').textContent = v.full_name;
+                document.getElementById('vEmail').textContent = v.email;
+                document.getElementById('vPhone').textContent = v.phone;
+                document.getElementById('vRole').textContent = v.role;
+                document.getElementById('vCompany').textContent = v.company_name || v.provider_business_name || 'N/A';
+                document.getElementById('vIdNumber').textContent = v.id_number;
+                document.getElementById('vIdFront').src = '/' + v.id_photo_url;
+                document.getElementById('vIdBack').src = '/' + (v.id_photo_back_url || v.id_photo_url);
+                document.getElementById('vCert').src = '/' + (v.business_certificate_url || '');
+                document.getElementById('verificationModal').classList.add('active');
+            }
+        }).catch(() => showToast('Error loading verification details', 'error'));
+    }
+
+    function closeVerificationModal() {
+        document.getElementById('verificationModal').classList.remove('active');
+        currentUserId = null;
+    }
+
+    async function processVerification(approved) {
+        if (!currentUserId) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/verify-user/${userId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/verify-user/${currentUserId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify({ is_verified: approved })
             });
-            const data = await response.json();
+            const data = await res.json();
             if (data.success) {
-                showNotification(data.message, 'success');
-                showSection('users');
+                showToast(data.message, 'success');
+                closeVerificationModal();
+                showSection('verifications');
             }
-        } catch(e) { showNotification('Error verifying user', 'error'); }
+        } catch(e) { showToast('Error processing verification', 'error'); }
+    }
+
+    // USERS
+    async function getUsersHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            return `
+                <div class="data-card"><div class="card-header"><h3>All Users</h3></div><div class="data-table"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Verified</th><th>Actions</th></tr></thead><tbody>${(data.users || []).map(user => `<tr><td>${escapeHtml(user.full_name)}</td><td>${escapeHtml(user.email)}</td><td>${user.phone}</td><td><span class="badge badge-info">${user.role}</span></td><td>${user.is_verified ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td><td><button class="btn-sm btn-delete" onclick="deleteUser('${user.id}')">Delete</button></td></tr>`).join('')}</tbody></table></div></div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading users</div>'; }
+    }
+
+    async function deleteUser(userId) {
+        if (!confirm('Are you sure you want to permanently delete this user?')) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            if (data.success) { showToast(data.message, 'success'); showSection('users'); }
+            else { showToast(data.message, 'error'); }
+        } catch(e) { showToast('Error deleting user', 'error'); }
+    }
+
+    // EMPLOYERS
+    async function getEmployersHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/employers`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            return `
+                <div class="data-card"><div class="card-header"><h3>Registered Employers</h3></div><div class="data-table"><table><thead><tr><th>Company</th><th>Contact</th><th>Jobs Posted</th><th>Status</th></tr></thead><tbody>${(data.employers || []).map(e => `<tr><td>${escapeHtml(e.company_name)}</td><td>${escapeHtml(e.full_name)}</td><td>${e.total_jobs_posted || 0}</td><td>${e.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td></tr>`).join('')}</tbody></table></div></div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading employers</div>'; }
+    }
+
+    // SERVICE PROVIDERS
+    async function getServiceProvidersHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/service-providers`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            return `
+                <div class="data-card"><div class="card-header"><h3>Service Providers</h3></div><div class="data-table"><table><thead><tr><th>Business</th><th>Category</th><th>Location</th><th>Connections</th><th>Featured</th><th>Actions</th></tr></thead><tbody>${(data.providers || []).map(p => `<tr><td>${escapeHtml(p.business_name)}</td><td>${escapeHtml(p.service_category)}</td><td>${escapeHtml(p.location)}</td><td>${p.total_connections || 0}</td><td>${p.is_featured ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td><td><button class="btn-sm btn-primary" onclick="toggleFeature('${p.user_id}', ${!p.is_featured})">${p.is_featured ? 'Unfeature' : 'Feature'}</button></td></tr>`).join('')}</tbody></table></div></div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading service providers</div>'; }
+    }
+
+    async function toggleFeature(providerId, featured) {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/service-providers/${providerId}/feature`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify({ is_featured: featured })
+            });
+            const data = await res.json();
+            if (data.success) { showToast(data.message, 'success'); showSection('serviceProviders'); }
+        } catch(e) { showToast('Error toggling feature', 'error'); }
+    }
+
+    // JOBS
+    async function getJobsHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/jobs`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            return `
+                <div class="data-card"><div class="card-header"><h3>All Job Postings</h3></div><div class="data-table"><table><thead><tr><th>Title</th><th>Company</th><th>Location</th><th>Applications</th><th>Status</th></tr></thead><tbody>${(data.jobs || []).map(j => `<tr><td>${escapeHtml(j.title)}</td><td>${escapeHtml(j.company_name)}</td><td>${escapeHtml(j.location || 'Remote')}</td><td>${j.applications_count || 0}</td><td>${j.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td></tr>`).join('')}</tbody></table></div></div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading jobs</div>'; }
+    }
+
+    // TRANSACTIONS
+    async function getTransactionsHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/transactions`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            return `
+                <div class="data-card"><div class="card-header"><h3>Transactions</h3></div><div class="data-table"><table><thead><tr><th>Receipt</th><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>${(data.transactions || []).map(t => `<tr><td>${t.mpesa_receipt || t.id.slice(0,8)}</td><td>${t.full_name || 'N/A'}</td><td>${t.transaction_type?.replace(/_/g,' ')}</td><td>KES ${t.amount}</td><td><span class="badge ${t.status === 'completed' ? 'badge-success' : t.status === 'pending' ? 'badge-warning' : 'badge-danger'}">${t.status}</span></td><td>${new Date(t.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table></div></div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading transactions</div>'; }
+    }
+
+    // REVIEWS
+    async function getReviewsHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/reviews/pending`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            const reviews = data.reviews || [];
+            if (reviews.length === 0) {
+                return `<div class="data-card"><div class="card-header"><h3>Pending Reviews</h3></div><div class="text-center py-12 text-gray-500">No pending reviews</div></div>`;
+            }
+            return `
+                <div class="data-card"><div class="card-header"><h3>Pending Reviews (${reviews.length})</h3></div>
+                ${reviews.map(r => `
+                    <div style="padding:16px;border-bottom:1px solid #e5e7eb;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+                            <div><span style="color:#f59e0b;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span> <strong>${escapeHtml(r.user_name)}</strong></div>
+                            <span style="font-size:11px;color:#94a3b8;">${new Date(r.created_at).toLocaleString()}</span>
+                        </div>
+                        <p style="color:#475569;font-size:14px;margin:12px 0;">${escapeHtml(r.comment)}</p>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn-sm btn-approve" onclick="approveReview('${r.id}', true)">✓ Approve</button>
+                            <button class="btn-sm btn-reject" onclick="approveReview('${r.id}', false)">✗ Reject</button>
+                        </div>
+                    </div>
+                `).join('')}</div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading reviews</div>'; }
     }
 
     async function approveReview(reviewId, approved) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/reviews/${reviewId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/reviews/${reviewId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify({ is_approved: approved })
             });
-            const data = await response.json();
-            if (data.success) {
-                showNotification(data.message, 'success');
-                showSection('reviews');
-            }
-        } catch(e) { showNotification('Error processing review', 'error'); }
+            const data = await res.json();
+            if (data.success) { showToast(data.message, 'success'); showSection('reviews'); }
+        } catch(e) { showToast('Error processing review', 'error'); }
+    }
+
+    // SETTINGS (Simplified)
+    async function getSettingsHTML() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/settings`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            const data = await res.json();
+            return `
+                <div class="data-card"><div class="card-header"><h3>Platform Settings</h3></div><div class="p-6">
+                    <form id="settingsForm">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            ${Object.entries(data.settings || {}).filter(([k]) => !k.includes('bank')).map(([key, value]) => `
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">${key.replace(/_/g,' ').toUpperCase()}</label>
+                                <input type="text" name="${key}" value="${escapeHtml(value)}" class="w-full border rounded-lg px-3 py-2 text-sm"></div>
+                            `).join('')}
+                        </div>
+                        <button type="submit" class="btn-primary mt-4">Save Settings</button>
+                    </form>
+                </div></div>
+            `;
+        } catch(e) { return '<div class="text-center py-12 text-red-500">Error loading settings</div>'; }
     }
 
     document.getElementById('mobileMenuBtn').addEventListener('click', () => {

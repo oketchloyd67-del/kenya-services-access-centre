@@ -9,13 +9,17 @@ const fs = require('fs');
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
 
+// ============================================
+// MULTER CONFIGURATION
+// ============================================
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         let folder = 'uploads/';
-        if (file.fieldname === 'id_photo') folder += 'ids/';
-        else if (file.fieldname === 'face_scan') folder += 'facescans/';
-        else if (file.fieldname === 'certificate') folder += 'certificates/';
-        else if (file.fieldname === 'cv') folder += 'cvs/';
+        if (file.fieldname === 'id_photo_front' || file.fieldname === 'id_photo_back') {
+            folder += 'ids/';
+        } else if (file.fieldname === 'certificate') {
+            folder += 'certificates/';
+        }
         
         if (!fs.existsSync(folder)) {
             fs.mkdirSync(folder, { recursive: true });
@@ -29,11 +33,19 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    if (allowedTypes.includes(file.mimetype)) {
+    const imageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const pdfTypes = ['application/pdf'];
+    
+    if (file.fieldname === 'certificate') {
+        if (pdfTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Business certificate must be a PDF file'), false);
+        }
+    } else if (imageTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, and PDF are allowed.'));
+        cb(new Error('Invalid file type. Only JPEG, PNG, and PDF are allowed.'), false);
     }
 };
 
@@ -43,6 +55,9 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
+// ============================================
+// VALIDATE ORIGINAL PHOTO
+// ============================================
 async function validateOriginalPhoto(filePath) {
     try {
         const metadata = await sharp(filePath).metadata();
@@ -54,7 +69,9 @@ async function validateOriginalPhoto(filePath) {
             { width: 1242, height: 2688 },
             { width: 720, height: 1280 },
             { width: 1440, height: 2560 },
-            { width: 1080, height: 2400 }
+            { width: 1080, height: 2400 },
+            { width: 750, height: 1334 },
+            { width: 640, height: 1136 }
         ];
         const isScreenshot = screenshotDimensions.some(dim => 
             metadata.width === dim.width && metadata.height === dim.height
@@ -65,6 +82,9 @@ async function validateOriginalPhoto(filePath) {
     }
 }
 
+// ============================================
+// REGISTER USER
+// ============================================
 router.post('/register', [
     body('email').isEmail().normalizeEmail(),
     body('phone').matches(/^[0-9]{10,12}$/),
@@ -125,10 +145,13 @@ router.post('/register', [
     }
 });
 
+// ============================================
+// VERIFY ID (Updated: ID front/back + certificate PDF only)
+// ============================================
 router.post('/verify-id', 
     upload.fields([
-        { name: 'id_photo', maxCount: 1 },
-        { name: 'face_scan', maxCount: 1 },
+        { name: 'id_photo_front', maxCount: 1 },
+        { name: 'id_photo_back', maxCount: 1 },
         { name: 'certificate', maxCount: 1 }
     ]),
     async (req, res) => {
@@ -143,53 +166,63 @@ router.post('/verify-id',
         
         const user = userResult.rows[0];
         
-        let idPhotoValid = false;
-        let faceScanValid = false;
+        let idFrontValid = false;
+        let idBackValid = false;
         
-        if (req.files['id_photo']) {
-            const idPhotoPath = req.files['id_photo'][0].path;
-            idPhotoValid = await validateOriginalPhoto(idPhotoPath);
+        // Validate front ID photo
+        if (req.files['id_photo_front']) {
+            const idFrontPath = req.files['id_photo_front'][0].path;
+            idFrontValid = await validateOriginalPhoto(idFrontPath);
         }
         
-        if (req.files['face_scan']) {
-            faceScanValid = true;
+        // Validate back ID photo
+        if (req.files['id_photo_back']) {
+            const idBackPath = req.files['id_photo_back'][0].path;
+            idBackValid = await validateOriginalPhoto(idBackPath);
         }
         
+        // Build updates
         const updates = {};
-        if (req.files['id_photo']) {
-            updates.id_photo_url = req.files['id_photo'][0].path;
-            updates.id_photo_original = idPhotoValid;
+        if (req.files['id_photo_front']) {
+            updates.id_photo_front_url = req.files['id_photo_front'][0].path;
         }
-        if (req.files['face_scan']) {
-            updates.face_scan_url = req.files['face_scan'][0].path;
-            updates.face_scan_verified = faceScanValid;
+        if (req.files['id_photo_back']) {
+            updates.id_photo_back_url = req.files['id_photo_back'][0].path;
         }
-        if (req.files['certificate'] && (user.role === 'employer' || user.role === 'service_provider')) {
+        if (req.files['certificate']) {
             updates.business_certificate_url = req.files['certificate'][0].path;
         }
         
-        const isVerified = idPhotoValid && faceScanValid;
+        // Check if all required documents are uploaded and valid
+        const hasFrontId = !!req.files['id_photo_front'];
+        const hasBackId = !!req.files['id_photo_back'];
+        const hasCertificate = !!req.files['certificate'];
         
+        // For employers and service providers, certificate is required
+        const requiresCertificate = (user.role === 'employer' || user.role === 'service_provider');
+        const isVerified = hasFrontId && hasBackId && idFrontValid && idBackValid && 
+                          (requiresCertificate ? hasCertificate : true);
+        
+        // Update user record
         await db.query(
             `UPDATE users 
              SET id_photo_url = COALESCE($1, id_photo_url),
-                 id_photo_original = COALESCE($2, id_photo_original),
-                 face_scan_url = COALESCE($3, face_scan_url),
-                 face_scan_verified = COALESCE($4, face_scan_verified),
-                 business_certificate_url = COALESCE($5, business_certificate_url),
-                 is_verified = $6
-             WHERE id = $7`,
+                 id_photo_back_url = COALESCE($2, id_photo_back_url),
+                 business_certificate_url = COALESCE($3, business_certificate_url),
+                 id_photo_original = $4,
+                 is_verified = $5
+             WHERE id = $6`,
             [
-                updates.id_photo_url || user.id_photo_url,
-                updates.id_photo_original !== undefined ? updates.id_photo_original : user.id_photo_original,
-                updates.face_scan_url || user.face_scan_url,
-                updates.face_scan_verified !== undefined ? updates.face_scan_verified : user.face_scan_verified,
+                updates.id_photo_front_url || user.id_photo_url,
+                updates.id_photo_back_url || null,
                 updates.business_certificate_url || user.business_certificate_url,
+                idFrontValid && idBackValid,
                 isVerified,
                 userId
             ]
         );
         
+        // Notify admin if employer verified
         if (user.role === 'employer' && isVerified) {
             const io = req.app.get('io');
             io.emit('admin_notification', {
@@ -201,10 +234,13 @@ router.post('/verify-id',
         
         res.json({
             success: true,
-            message: isVerified ? 'ID verification successful. Awaiting admin approval.' : 'Files uploaded but verification failed. Please upload original ID photo.',
+            message: isVerified ? 'ID verification successful. Awaiting admin approval.' : 'Files uploaded but verification failed. Please upload original ID photos.',
             isVerified,
-            idPhotoValid,
-            faceScanValid
+            idFrontValid,
+            idBackValid,
+            hasFrontId,
+            hasBackId,
+            hasCertificate
         });
         
     } catch (error) {
@@ -213,6 +249,9 @@ router.post('/verify-id',
     }
 });
 
+// ============================================
+// LOGIN
+// ============================================
 router.post('/login', [
     body('email').isEmail().normalizeEmail(),
     body('password').notEmpty()
@@ -281,6 +320,9 @@ router.post('/login', [
     }
 });
 
+// ============================================
+// GET USER PROFILE
+// ============================================
 router.get('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     const db = req.app.get('db');

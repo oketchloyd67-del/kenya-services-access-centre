@@ -1,12 +1,5 @@
-// Use the existing global variable (don't redeclare)
-console.log('API_BASE_URL:', API_BASE_URL);
-/**
- * Kenya Services Access Centre
- * Employer Dashboard JavaScript
- */
-
 // ============================================
-// LOAD EMPLOYER DASHBOARD
+// EMPLOYER DASHBOARD JAVASCRIPT
 // ============================================
 
 async function loadEmployerDashboard() {
@@ -23,7 +16,7 @@ async function loadEmployerDashboard() {
 
 async function loadSubscriptionStatus(employerId) {
     try {
-        const response = await fetch(`https://kenyaservices-accesscentre-ly34.onrender.com/api/employers/subscription-status/${employerId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/employers/subscription-status/${employerId}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -36,9 +29,9 @@ async function loadSubscriptionStatus(employerId) {
             
             if (statusElement) {
                 if (sub.isActive) {
-                    statusElement.innerHTML = '<span style="color: #38a169;"><i class="fas fa-check-circle"></i> Active</span>';
+                    statusElement.innerHTML = '<span style="color: #059669;"><i class="fas fa-check-circle"></i> Active</span>';
                 } else {
-                    statusElement.innerHTML = '<span style="color: #e53e3e;"><i class="fas fa-times-circle"></i> Expired - Please renew</span>';
+                    statusElement.innerHTML = '<span style="color: #dc2626;"><i class="fas fa-times-circle"></i> Expired - Please renew</span>';
                 }
             }
             
@@ -59,13 +52,13 @@ async function loadSubscriptionStatus(employerId) {
         }
     } catch (error) {
         console.error('Error loading subscription:', error);
-        showNotification('Failed to load subscription status', 'error');
+        showToast('Failed to load subscription status', 'error');
     }
 }
 
 async function loadEmployerJobs(employerId) {
     try {
-        const response = await fetch(`https://kenyaservices-accesscentre-ly34.onrender.com/api/employers/jobs/${employerId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/employers/jobs/${employerId}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -77,7 +70,7 @@ async function loadEmployerJobs(employerId) {
                     jobsContainer.innerHTML = '<div class="text-center py-8 text-gray-500">No jobs posted yet. Click "Post New Job" to get started.</div>';
                 } else {
                     jobsContainer.innerHTML = data.jobs.map(job => `
-                        <div class="job-card" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #6b46c0;">
+                        <div class="job-card" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #4f46e5;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div style="flex: 1;">
                                     <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${escapeHtml(job.title)}</h3>
@@ -87,10 +80,10 @@ async function loadEmployerJobs(employerId) {
                                     <p style="color: #a0aec0; font-size: 12px;">Views: ${job.views_count || 0}</p>
                                 </div>
                                 <div style="text-align: right;">
-                                    <span style="display: inline-block; padding: 4px 8px; border-radius: 20px; font-size: 12px; ${job.is_active ? 'background: #c6f6d5; color: #22543d;' : 'background: #fed7d7; color: #742a2a;'}">
+                                    <span style="display: inline-block; padding: 4px 8px; border-radius: 20px; font-size: 12px; ${job.is_active ? 'background: #d1fae5; color: #065f46;' : 'background: #fee2e2; color: #991b1b;'}">
                                         ${job.is_active ? 'Active' : 'Inactive'}
                                     </span>
-                                    <button onclick="viewJobDetails('${job.id}')" style="display: block; margin-top: 8px; background: none; border: none; color: #6b46c0; cursor: pointer;">
+                                    <button onclick="viewJobDetails('${job.id}')" style="display: block; margin-top: 8px; background: none; border: none; color: #4f46e5; cursor: pointer; font-weight: 500;">
                                         View Details
                                     </button>
                                 </div>
@@ -102,13 +95,13 @@ async function loadEmployerJobs(employerId) {
         }
     } catch (error) {
         console.error('Error loading jobs:', error);
-        showNotification('Failed to load jobs', 'error');
+        showToast('Failed to load jobs', 'error');
     }
 }
 
 async function loadApplications(employerId) {
     try {
-        const response = await fetch(`/api/employers/applications/${employerId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/employers/applications/${employerId}`, {
             headers: { 'Authorization': `Bearer ${getAuthToken()}` }
         });
         const data = await response.json();
@@ -120,7 +113,7 @@ async function loadApplications(employerId) {
                     appsContainer.innerHTML = '<div class="text-center py-8 text-gray-500">No applications received yet.</div>';
                 } else {
                     appsContainer.innerHTML = data.applications.map(app => `
-                        <div style="background: #f7fafc; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #e5e7eb;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div>
                                     <p style="font-weight: 600;">${escapeHtml(app.job_seeker_name)}</p>
@@ -128,7 +121,7 @@ async function loadApplications(employerId) {
                                     <p style="font-size: 12px; color: #a0aec0;">Applied: ${new Date(app.applied_at).toLocaleString()}</p>
                                 </div>
                                 <div>
-                                    <a href="${app.cv_url}" target="_blank" style="color: #6b46c0; text-decoration: none; font-size: 14px;">
+                                    <a href="${app.cv_url}" target="_blank" style="color: #4f46e5; text-decoration: none; font-size: 14px; font-weight: 500;">
                                         <i class="fas fa-download"></i> Download CV
                                     </a>
                                 </div>
@@ -140,13 +133,9 @@ async function loadApplications(employerId) {
         }
     } catch (error) {
         console.error('Error loading applications:', error);
-        showNotification('Failed to load applications', 'error');
+        showToast('Failed to load applications', 'error');
     }
 }
-
-// ============================================
-// POST NEW JOB
-// ============================================
 
 async function postNewJob(event) {
     event.preventDefault();
@@ -166,7 +155,7 @@ async function postNewJob(event) {
     showLoading(true);
     
     try {
-        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/employers/post-job', {
+        const response = await fetch(`${API_BASE_URL}/api/employers/post-job`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -179,30 +168,26 @@ async function postNewJob(event) {
         showLoading(false);
         
         if (data.success) {
-            showNotification('Job posted successfully!', 'success');
+            showToast('Job posted successfully!', 'success');
             document.getElementById('postJobForm').reset();
             closeModal('postJobModal');
             await loadEmployerJobs(employerId);
         } else {
-            showNotification(data.message || 'Failed to post job', 'error');
+            showToast(data.message || 'Failed to post job', 'error');
         }
     } catch (error) {
         showLoading(false);
         console.error('Post job error:', error);
-        showNotification('An error occurred', 'error');
+        showToast('An error occurred', 'error');
     }
 }
-
-// ============================================
-// RENEW SUBSCRIPTION
-// ============================================
 
 async function renewSubscription() {
     const user = getCurrentUser();
     const phoneNumber = prompt('Enter your M-PESA phone number for payment of KES 300:');
     
     if (!phoneNumber || !validatePhoneNumber(phoneNumber)) {
-        showNotification('Please enter a valid phone number', 'error');
+        showToast('Please enter a valid phone number', 'error');
         return;
     }
     
@@ -215,13 +200,9 @@ async function renewSubscription() {
     );
     
     if (result.success) {
-        showNotification('Payment initiated. Your subscription will renew upon confirmation.', 'success');
+        showToast('Payment initiated. Your subscription will renew upon confirmation.', 'success');
     }
 }
-
-// ============================================
-// MODAL FUNCTIONS
-// ============================================
 
 function showPostJobModal() {
     const modal = document.getElementById('postJobModal');
@@ -243,10 +224,6 @@ function viewJobDetails(jobId) {
     window.location.href = `/pages/job-details.html?id=${jobId}`;
 }
 
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -254,10 +231,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ============================================
-// INITIALIZATION
-// ============================================
-
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('employer-dashboard')) {
         loadEmployerDashboard();

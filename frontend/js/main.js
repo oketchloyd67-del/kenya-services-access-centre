@@ -1,14 +1,11 @@
+// ============================================
+// KENYA SERVICES ACCESS CENTRE - MAIN JS
+// ============================================
+
+// API Configuration
 const API_BASE_URL = 'https://kenyaservices-accesscentre-ly34.onrender.com';
-/**
- * Kenya Services Access Centre
- * Main JavaScript File
- * Shared functions across all pages
- */
 
-// ============================================
-// GLOBAL VARIABLES
-// ============================================
-
+// Global variables
 let authToken = localStorage.getItem('authToken');
 let currentUser = null;
 let socket = null;
@@ -52,7 +49,7 @@ function setCurrentUser(user) {
 
 async function login(email, password) {
     try {
-        const response = await fetch('https://kenyaservices-accesscentre-ly34.onrender.com/api/auth/login', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -64,15 +61,15 @@ async function login(email, password) {
             setAuthToken(data.token);
             setCurrentUser(data.user);
             connectWebSocket(data.user.id);
-            showNotification('Login successful!', 'success');
+            showToast('Login successful!', 'success');
             return { success: true, user: data.user };
         } else {
-            showNotification(data.message, 'error');
+            showToast(data.message, 'error');
             return { success: false, message: data.message };
         }
     } catch (error) {
         console.error('Login error:', error);
-        showNotification('An error occurred during login', 'error');
+        showToast('An error occurred during login', 'error');
         return { success: false, message: 'Network error' };
     }
 }
@@ -82,8 +79,35 @@ function logout() {
     if (socket) {
         socket.disconnect();
     }
-    showNotification('Logged out successfully', 'success');
-    window.location.href = '/index.html';
+    showToast('Logged out successfully', 'success');
+    window.location.href = 'login.html';
+}
+
+// ============================================
+// VERIFICATION FUNCTIONS (Updated for ID front/back only)
+// ============================================
+
+async function verifyIdentity(userId, idFrontFile, idBackFile, certificateFile) {
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('id_photo_front', idFrontFile);
+    formData.append('id_photo_back', idBackFile);
+    if (certificateFile) {
+        formData.append('certificate', certificateFile);
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/verify-id`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+            body: formData
+        });
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Verification error:', error);
+        return { success: false, message: 'Verification failed' };
+    }
 }
 
 // ============================================
@@ -94,11 +118,11 @@ async function initiateMpesaPayment(phoneNumber, amount, transactionType, userId
     showLoading(true);
     
     try {
-        const response = await fetch('${API_BASE_URL}/api/payments/mpesa/stkpush', {
+        const response = await fetch(`${API_BASE_URL}/api/payments/mpesa/stkpush`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 phoneNumber,
@@ -113,17 +137,17 @@ async function initiateMpesaPayment(phoneNumber, amount, transactionType, userId
         showLoading(false);
         
         if (result.success) {
-            showNotification('STK Push sent! Check your phone and enter M-PESA PIN.', 'info');
+            showToast('STK Push sent! Check your phone and enter M-PESA PIN.', 'success');
             pollTransactionStatus(result.checkoutRequestID);
             return { success: true, checkoutRequestID: result.checkoutRequestID };
         } else {
-            showNotification(result.message, 'error');
+            showToast(result.message, 'error');
             return { success: false, message: result.message };
         }
     } catch (error) {
         showLoading(false);
         console.error('Payment error:', error);
-        showNotification('An error occurred while processing payment', 'error');
+        showToast('An error occurred while processing payment', 'error');
         return { success: false, message: 'Network error' };
     }
 }
@@ -135,22 +159,22 @@ async function pollTransactionStatus(checkoutRequestID, maxAttempts = 30, interv
         attempts++;
         
         try {
-            const response = await fetch(`/api/payments/transaction-status/${checkoutRequestID}`, {
-                headers: { 'Authorization': `Bearer ${authToken}` }
+            const response = await fetch(`${API_BASE_URL}/api/payments/transaction-status/${checkoutRequestID}`, {
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` }
             });
             const data = await response.json();
             
             if (data.success && data.transaction) {
                 if (data.transaction.status === 'completed') {
                     clearInterval(intervalId);
-                    showNotification(`Payment successful! Receipt: ${data.transaction.mpesa_receipt}`, 'success');
+                    showToast(`Payment successful! Receipt: ${data.transaction.mpesa_receipt}`, 'success');
                     if (data.transaction.transaction_type === 'employer_registration') {
                         window.location.href = '/pages/employer-dashboard.html';
                     }
                     return { success: true, transaction: data.transaction };
                 } else if (data.transaction.status === 'failed') {
                     clearInterval(intervalId);
-                    showNotification(`Payment failed: ${data.transaction.result_desc || 'Unknown error'}`, 'error');
+                    showToast(`Payment failed: ${data.transaction.result_desc || 'Unknown error'}`, 'error');
                     return { success: false, message: data.transaction.result_desc };
                 }
             }
@@ -160,7 +184,7 @@ async function pollTransactionStatus(checkoutRequestID, maxAttempts = 30, interv
         
         if (attempts >= maxAttempts) {
             clearInterval(intervalId);
-            showNotification('Payment confirmation timeout. Please check your transaction history.', 'warning');
+            showToast('Payment confirmation timeout. Please check your transaction history.', 'warning');
         }
     }, interval);
 }
@@ -170,15 +194,14 @@ async function pollTransactionStatus(checkoutRequestID, maxAttempts = 30, interv
 // ============================================
 
 function connectWebSocket(userId) {
-    // Check if Socket.io is loaded
     if (typeof io === 'undefined') {
         console.log('Socket.io not loaded, skipping WebSocket connection');
         return;
     }
     
     try {
-        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const socketUrl = 'https://kenyaservices-accesscentre-ly34.onrender.com';
+        const backendUrl = API_BASE_URL;
+        const socketUrl = backendUrl.replace('https://', 'wss://').replace('http://', 'ws://');
         
         socket = io(socketUrl, {
             transports: ['websocket'],
@@ -192,18 +215,18 @@ function connectWebSocket(userId) {
         });
         
         socket.on('payment_success', (data) => {
-            showNotification(`Payment of KES ${data.amount} successful! Receipt: ${data.receipt}`, 'success');
+            showToast(`Payment of KES ${data.amount} successful! Receipt: ${data.receipt}`, 'success');
             if (window.location.pathname.includes('employer-dashboard')) {
                 location.reload();
             }
         });
         
         socket.on('application_received', (data) => {
-            showNotification(`New application received for ${data.jobTitle}`, 'info');
+            showToast(`New application received for ${data.jobTitle}`, 'info');
         });
         
         socket.on('admin_notification', (data) => {
-            showNotification(data.message, 'warning');
+            showToast(data.message, 'warning');
         });
         
         socket.on('disconnect', () => {
@@ -222,32 +245,15 @@ function connectWebSocket(userId) {
 // UI FUNCTIONS
 // ============================================
 
-function showNotification(message, type = 'success') {
+function showToast(message, type = 'success') {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    let icon = 'fa-check-circle';
-    if (type === 'error') icon = 'fa-exclamation-circle';
-    if (type === 'warning') icon = 'fa-exclamation-triangle';
-    if (type === 'info') icon = 'fa-info-circle';
-    
-    toast.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <i class="fas ${icon}"></i>
-            <span>${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; cursor: pointer; margin-left: 8px;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
     document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        if (toast && toast.remove) {
-            toast.remove();
-        }
-    }, 5000);
+    setTimeout(() => toast.remove(), 4000);
 }
 
 function showLoading(show, message = 'Processing...') {
@@ -257,33 +263,18 @@ function showLoading(show, message = 'Processing...') {
         if (!loadingOverlay) {
             loadingOverlay = document.createElement('div');
             loadingOverlay.id = 'loadingOverlay';
-            loadingOverlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-            `;
+            loadingOverlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]';
             loadingOverlay.innerHTML = `
-                <div style="background: white; padding: 24px; border-radius: 12px; text-align: center;">
+                <div class="bg-white rounded-2xl p-8 text-center shadow-2xl">
                     <div class="spinner"></div>
-                    <p style="margin-top: 16px; color: #4a5568;" id="loadingMessage">${message}</p>
+                    <p class="mt-4 text-gray-600 font-medium">${message}</p>
                 </div>
             `;
             document.body.appendChild(loadingOverlay);
-        } else {
-            const msgEl = document.getElementById('loadingMessage');
-            if (msgEl) msgEl.textContent = message;
-            loadingOverlay.style.display = 'flex';
         }
     } else {
         if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
+            loadingOverlay.remove();
         }
     }
 }
@@ -388,33 +379,140 @@ function startCountdown(expiryDate, elementId, onExpire) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-     const user = getCurrentUser();
+    const user = getCurrentUser();
     if (user) {
         currentUser = user;
-        if (typeof io !== 'undefined') {
-            connectWebSocket(user.id);
-        }
-        
-        const navRight = document.querySelector('.nav-right');
-        if (navRight) {
-            if (user.role === 'employer') {
-                navRight.innerHTML = `
-                    <a href="/pages/employer-dashboard.html" style="color: #4a5568; text-decoration: none;">Dashboard</a>
-                    <button onclick="logout()" style="background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Logout</button>
-                `;
-            } else {
-                navRight.innerHTML = `
-                    <span style="color: #4a5568;">Welcome, ${user.full_name}</span>
-                    <button onclick="logout()" style="background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Logout</button>
-                `;
-            }
-        }
+        connectWebSocket(user.id);
     }
 });
 
+// ============================================
+// NOTIFICATION SYSTEM
+// ============================================
+
+let notificationSocket = null;
+let notificationCount = 0;
+
+function initNotifications(userId) {
+    if (!userId) return;
+    
+    // Connect to WebSocket for real-time notifications
+    connectWebSocket(userId);
+    
+    // Load existing notifications
+    loadNotifications();
+}
+
+async function loadNotifications() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/notifications`, {
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+            notificationCount = data.notifications.filter(n => !n.is_read).length;
+            updateNotificationBadge();
+        }
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+    }
+}
+
+function updateNotificationBadge() {
+    const badge = document.getElementById('notificationBadge');
+    if (badge) {
+        if (notificationCount > 0) {
+            badge.textContent = notificationCount > 99 ? '99+' : notificationCount;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+}
+
+function toggleNotificationDropdown() {
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+        if (!dropdown.classList.contains('hidden')) {
+            fetchNotifications();
+        }
+    }
+}
+
+async function fetchNotifications() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/notifications`, {
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+            renderNotifications(data.notifications);
+        }
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+    }
+}
+
+function renderNotifications(notifications) {
+    const container = document.getElementById('notificationList');
+    if (!container) return;
+    
+    if (!notifications || notifications.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">No notifications</div>';
+        return;
+    }
+    
+    container.innerHTML = notifications.slice(0, 10).map(n => `
+        <div class="notification-item ${n.is_read ? 'bg-white' : 'bg-blue-50'} border-b border-gray-100 p-3 hover:bg-gray-50 transition cursor-pointer" onclick="markNotificationRead('${n.id}')">
+            <div class="flex items-start gap-2">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-800">${escapeHtml(n.title)}</p>
+                    <p class="text-xs text-gray-500">${escapeHtml(n.message)}</p>
+                    <p class="text-xs text-gray-400 mt-1">${new Date(n.created_at).toLocaleString()}</p>
+                </div>
+                ${!n.is_read ? '<span class="w-2 h-2 bg-blue-500 rounded-full mt-2"></span>' : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+async function markNotificationRead(notificationId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/notifications/${notificationId}/read`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        if (response.ok) {
+            notificationCount = Math.max(0, notificationCount - 1);
+            updateNotificationBadge();
+            fetchNotifications();
+        }
+    } catch (error) {
+        console.error('Error marking notification read:', error);
+    }
+}
+
+async function markAllNotificationsRead() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        if (response.ok) {
+            notificationCount = 0;
+            updateNotificationBadge();
+            fetchNotifications();
+        }
+    } catch (error) {
+        console.error('Error marking all notifications read:', error);
+    }
+}
+
 // Export for global use
+window.API_BASE_URL = API_BASE_URL;
 window.initiateMpesaPayment = initiateMpesaPayment;
-window.showNotification = showNotification;
+window.showToast = showToast;
 window.showLoading = showLoading;
 window.logout = logout;
 window.login = login;
@@ -426,3 +524,4 @@ window.setupFileUpload = setupFileUpload;
 window.startCountdown = startCountdown;
 window.getCurrentUser = getCurrentUser;
 window.getAuthToken = getAuthToken;
+window.verifyIdentity = verifyIdentity;
