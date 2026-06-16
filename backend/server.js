@@ -11,19 +11,25 @@ const path = require('path');
 
 dotenv.config();
 
-// ===== IMPORT ROUTES (MUST BE BEFORE app.use) =====
+// ============================================
+// IMPORT ROUTES
+// ============================================
 const authRoutes = require('./routes/auth');
 const employerRoutes = require('./routes/employers');
 const jobRoutes = require('./routes/jobs');
 const serviceRoutes = require('./routes/services');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
-const reviewRoutes = require('./routes/reviews');
 const passwordRoutes = require('./routes/password');
+const notificationRoutes = require('./routes/notifications');
 
-// ===== INITIALIZE APP =====
+// ============================================
+// INITIALIZE APP
+// ============================================
 const app = express();
 const server = http.createServer(app);
+
+// Socket.io with CORS
 const io = socketIo(server, {
     cors: {
         origin: 'https://kenyaservices-accesscentre-emph.onrender.com',
@@ -32,21 +38,18 @@ const io = socketIo(server, {
     }
 });
 
-// ===== RATE LIMITING =====
+// ============================================
+// RATE LIMITING
+// ============================================
 const limiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
     message: { success: false, message: 'Too many requests, please try again later.' }
 });
 
-const notificationRoutes = require('./routes/notifications');
-const authMiddleware = require('./middleware/auth');
-
-// Add this before existing routes
-app.use('/api/notifications', notificationRoutes);
-// ===== MANUAL CORS HEADERS (BEFORE ANY ROUTES) =====
-app.use('/api/password', passwordRoutes);
-app.use('/api/notifications', authMiddleware, notificationRoutes);
+// ============================================
+// CORS CONFIGURATION
+// ============================================
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', 'https://kenyaservices-accesscentre-emph.onrender.com');
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -59,7 +62,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// ===== CORS MIDDLEWARE =====
 app.use(cors({
     origin: 'https://kenyaservices-accesscentre-emph.onrender.com',
     credentials: true,
@@ -68,16 +70,15 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-// ===== BODY PARSERS =====
+// ============================================
+// MIDDLEWARE
+// ============================================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
-app.use('/api/reviews', reviewRoutes);
-
-// ===== STATIC FILES =====
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// ===== SESSION CONFIGURATION =====
+// Session configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'default_secret',
     resave: false,
@@ -89,7 +90,9 @@ app.use(session({
     }
 }));
 
-// ===== DATABASE CONNECTION =====
+// ============================================
+// DATABASE CONNECTION
+// ============================================
 const pool = new Pool({
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 5432,
@@ -115,15 +118,21 @@ pool.connect((err, client, release) => {
 app.set('db', pool);
 app.set('io', io);
 
-// ===== ROUTES =====
+// ============================================
+// USE ROUTES
+// ============================================
 app.use('/api/auth', authRoutes);
 app.use('/api/employers', employerRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/password', passwordRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-// ===== HEALTH CHECK =====
+// ============================================
+// HEALTH CHECK
+// ============================================
 app.get('/api/health', (req, res) => {
     res.json({
         success: true,
@@ -133,7 +142,9 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// ===== SERVE FRONTEND IN PRODUCTION =====
+// ============================================
+// SERVE FRONTEND IN PRODUCTION
+// ============================================
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend')));
     app.get('*', (req, res) => {
@@ -141,30 +152,9 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// ===== CRON JOBS =====
-// Delete incomplete employer registrations older than 1 hour
-cron.schedule('0 * * * *', async () => {
-    try {
-        const result = await pool.query(`
-            DELETE FROM users 
-            WHERE id IN (
-                SELECT u.id
-                FROM users u
-                LEFT JOIN employers e ON u.id = e.user_id
-                WHERE u.role = 'employer' 
-                AND e.user_id IS NULL
-                AND u.created_at < NOW() - INTERVAL '1 hour'
-            )
-        `);
-        if (result.rowCount > 0) {
-            console.log(`Cleaned up ${result.rowCount} incomplete employer registrations`);
-        }
-    } catch (error) {
-        console.error('Error cleaning up incomplete registrations:', error);
-    }
-});
-
-// Check expired subscriptions every hour
+// ============================================
+// CRON JOBS
+// ============================================
 cron.schedule('0 * * * *', async () => {
     console.log('Running subscription expiry check...', new Date().toISOString());
     try {
@@ -188,7 +178,6 @@ cron.schedule('0 * * * *', async () => {
     }
 });
 
-// Clean up pending transactions daily
 cron.schedule('0 2 * * *', async () => {
     console.log('Cleaning up old pending transactions...');
     try {
@@ -204,7 +193,9 @@ cron.schedule('0 2 * * *', async () => {
     }
 });
 
-// ===== WEB SOCKET CONNECTION =====
+// ============================================
+// WEB SOCKET CONNECTION
+// ============================================
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
     
@@ -223,7 +214,9 @@ io.on('connection', (socket) => {
     });
 });
 
-// ===== ERROR HANDLING =====
+// ============================================
+// ERROR HANDLING
+// ============================================
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);
     res.status(500).json({
@@ -233,12 +226,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404 handler
 app.use((req, res) => {
     res.status(404).json({ success: false, message: 'Route not found' });
 });
 
-// ===== START SERVER =====
+// ============================================
+// START SERVER
+// ============================================
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -246,7 +240,9 @@ server.listen(PORT, () => {
     console.log(`API: http://localhost:${PORT}/api`);
 });
 
-// ===== GRACEFUL SHUTDOWN =====
+// ============================================
+// GRACEFUL SHUTDOWN
+// ============================================
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully...');
     server.close(() => {
@@ -256,28 +252,6 @@ process.on('SIGTERM', () => {
             process.exit(0);
         });
     });
-});
-
-// Job Seeker Applications
-router.get('/job-seeker/applications/:userId', async (req, res) => {
-    const { userId } = req.params;
-    const db = req.app.get('db');
-    
-    try {
-        const result = await db.query(`
-            SELECT ja.*, j.title as job_title, j.location, e.company_name, ja.status
-            FROM job_applications ja
-            JOIN jobs j ON ja.job_id = j.id
-            LEFT JOIN employers e ON j.employer_id = e.user_id
-            WHERE ja.job_seeker_id = $1
-            ORDER BY ja.applied_at DESC
-        `, [userId]);
-        
-        res.json({ success: true, applications: result.rows });
-    } catch (error) {
-        console.error('Get applications error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
 });
 
 module.exports = { app, pool, io };
