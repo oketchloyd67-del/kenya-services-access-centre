@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { body, query, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 
+// ============================================
+// REGISTER SERVICE PROVIDER
+// ============================================
 router.post('/register', [
     body('userId').isUUID(),
     body('business_name').notEmpty().trim(),
@@ -55,6 +58,42 @@ router.post('/register', [
     }
 });
 
+// ============================================
+// UPDATE SERVICE PROVIDER PROFILE
+// ============================================
+router.put('/update', [
+    body('userId').isUUID(),
+    body('business_name').notEmpty().trim(),
+    body('service_category').notEmpty(),
+    body('location').notEmpty()
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    
+    const { userId, business_name, service_category, sub_category, location, description, price_range } = req.body;
+    const db = req.app.get('db');
+    
+    try {
+        await db.query(
+            `UPDATE service_providers 
+             SET business_name = $1, service_category = $2, sub_category = $3, 
+                 location = $4, description = $5, price_range = $6
+             WHERE user_id = $7`,
+            [business_name, service_category, sub_category, location, description, price_range, userId]
+        );
+        
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+        console.error('Update service provider error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// SEARCH SERVICE PROVIDERS
+// ============================================
 router.get('/search', [
     query('category').optional(),
     query('location').optional(),
@@ -106,6 +145,7 @@ router.get('/search', [
             years_experience: provider.years_experience,
             total_connections: provider.total_connections,
             average_rating: provider.average_rating,
+            is_featured: provider.is_featured,
             contact_hidden: true,
             message: 'Pay KES 100 to get contact details'
         }));
@@ -122,6 +162,9 @@ router.get('/search', [
     }
 });
 
+// ============================================
+// CONNECT TO SERVICE PROVIDER
+// ============================================
 router.post('/connect', [
     body('providerId').isUUID(),
     body('seekerId').isUUID(),
@@ -148,6 +191,10 @@ router.post('/connect', [
                 [providerId]
             );
             
+            if (providerResult.rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Provider not found' });
+            }
+            
             return res.json({
                 success: true,
                 already_paid: true,
@@ -162,6 +209,16 @@ router.post('/connect', [
             });
         }
         
+        // Get provider email for notification
+        const providerResult = await db.query(
+            `SELECT u.email FROM service_providers sp
+             JOIN users u ON sp.user_id = u.id
+             WHERE sp.user_id = $1`,
+            [providerId]
+        );
+        
+        const providerEmail = providerResult.rows[0]?.email || null;
+        
         await db.query(
             `INSERT INTO service_connections 
              (service_provider_id, seeker_id, seeker_name, seeker_phone, seeker_email, fee_paid, status)
@@ -174,7 +231,14 @@ router.post('/connect', [
             requires_payment: true,
             amount: 100,
             transaction_type: 'service_connection',
-            metadata: { providerId, seekerId, seeker_phone, seeker_email, seeker_name }
+            metadata: { 
+                providerId, 
+                seekerId, 
+                seeker_phone, 
+                seeker_email, 
+                seeker_name,
+                providerEmail 
+            }
         });
         
     } catch (error) {
@@ -183,6 +247,32 @@ router.post('/connect', [
     }
 });
 
+// ============================================
+// GET SERVICE PROVIDER CONNECTIONS
+// ============================================
+router.get('/connections/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(
+            `SELECT seeker_name, seeker_phone, seeker_email, connected_at 
+             FROM service_connections 
+             WHERE service_provider_id = $1 AND fee_paid = true
+             ORDER BY connected_at DESC`,
+            [userId]
+        );
+        
+        res.json({ success: true, connections: result.rows });
+    } catch (error) {
+        console.error('Get connections error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// GET SINGLE SERVICE PROVIDER
+// ============================================
 router.get('/:providerId', async (req, res) => {
     const { providerId } = req.params;
     const db = req.app.get('db');
@@ -200,6 +290,12 @@ router.get('/:providerId', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Service provider not found' });
         }
         
+        // Increment views
+        await db.query(
+            `UPDATE service_providers SET views = views + 1 WHERE user_id = $1`,
+            [providerId]
+        );
+        
         res.json({
             success: true,
             provider: result.rows[0]
@@ -211,6 +307,9 @@ router.get('/:providerId', async (req, res) => {
     }
 });
 
+// ============================================
+// GET SERVICE CATEGORIES
+// ============================================
 router.get('/categories/list', async (req, res) => {
     const db = req.app.get('db');
     
@@ -234,56 +333,7 @@ router.get('/categories/list', async (req, res) => {
     }
 });
 
-// PUT /api/services/update - Update service provider profile
-router.put('/update', [
-    body('userId').isUUID(),
-    body('business_name').notEmpty().trim(),
-    body('service_category').notEmpty(),
-    body('location').notEmpty()
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
-    }
-    
-    const { userId, business_name, service_category, sub_category, location, description, price_range } = req.body;
-    const db = req.app.get('db');
-    
-    try {
-        await db.query(
-            `UPDATE service_providers 
-             SET business_name = $1, service_category = $2, sub_category = $3, 
-                 location = $4, description = $5, price_range = $6
-             WHERE user_id = $7`,
-            [business_name, service_category, sub_category, location, description, price_range, userId]
-        );
-        
-        res.json({ success: true, message: 'Profile updated successfully' });
-    } catch (error) {
-        console.error('Update service provider error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// GET /api/service-provider/connections/:userId - Get connections for service provider
-router.get('/connections/:userId', async (req, res) => {
-    const { userId } = req.params;
-    const db = req.app.get('db');
-    
-    try {
-        const result = await db.query(
-            `SELECT seeker_name, seeker_phone, seeker_email, connected_at 
-             FROM service_connections 
-             WHERE service_provider_id = $1 AND fee_paid = true
-             ORDER BY connected_at DESC`,
-            [userId]
-        );
-        
-        res.json({ success: true, connections: result.rows });
-    } catch (error) {
-        console.error('Get connections error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
+// ============================================
+// EXPORT ROUTER
+// ============================================
 module.exports = router;

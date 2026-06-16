@@ -3,10 +3,10 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
+const emailUtil = require('../utils/email');
 
 // ============================================
-// REQUEST PASSWORD RESET - POST /api/password/request-reset
+// REQUEST PASSWORD RESET
 // ============================================
 router.post('/request-reset', [
     body('email').isEmail().normalizeEmail()
@@ -18,7 +18,6 @@ router.post('/request-reset', [
     
     const { email } = req.body;
     const db = req.app.get('db');
-    const emailUtil = require('../utils/email');
     
     try {
         const result = await db.query('SELECT id, full_name FROM users WHERE email = $1', [email]);
@@ -55,7 +54,7 @@ router.post('/request-reset', [
 });
 
 // ============================================
-// RESET PASSWORD - POST /api/password/reset
+// RESET PASSWORD
 // ============================================
 router.post('/reset', [
     body('token').notEmpty(),
@@ -106,4 +105,7 @@ router.post('/reset', [
     }
 });
 
+// ============================================
+// EXPORT ROUTER
+// ============================================
 module.exports = router;

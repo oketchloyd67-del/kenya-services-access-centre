@@ -7,7 +7,9 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 
-// Configure multer for CV uploads
+// ============================================
+// MULTER CONFIGURATION FOR CV UPLOADS
+// ============================================
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = 'uploads/cvs/';
@@ -33,7 +35,9 @@ const upload = multer({
     }
 });
 
-// Email transporter
+// ============================================
+// EMAIL TRANSPORTER
+// ============================================
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT),
@@ -45,7 +49,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // ============================================
-// GET /api/jobs/search - Search jobs (NO VIEW DEPENDENCY)
+// SEARCH JOBS
 // ============================================
 router.get('/search', async (req, res) => {
     const { keyword, location, employment_type } = req.query;
@@ -54,7 +58,6 @@ router.get('/search', async (req, res) => {
     try {
         console.log('Jobs search called');
         
-        // Direct query on jobs table - NO VIEW
         let query = `
             SELECT j.*, e.company_name, u.email as employer_email
             FROM jobs j
@@ -88,7 +91,6 @@ router.get('/search', async (req, res) => {
         console.log('Executing query');
         const result = await db.query(query, params);
         
-        // Format jobs for frontend
         const jobs = result.rows.map(job => ({
             id: job.id,
             title: job.title,
@@ -118,36 +120,7 @@ router.get('/search', async (req, res) => {
 });
 
 // ============================================
-// GET /api/jobs/test - Test endpoint
-// ============================================
-router.get('/test', async (req, res) => {
-    res.json({ success: true, message: 'Jobs API is working' });
-});
-
-// GET /api/job-seeker/applications/:userId
-router.get('/applications/:userId', async (req, res) => {
-    const { userId } = req.params;
-    const db = req.app.get('db');
-    
-    try {
-        const result = await db.query(`
-            SELECT ja.*, j.title as job_title, j.location, e.company_name, ja.status
-            FROM job_applications ja
-            JOIN jobs j ON ja.job_id = j.id
-            LEFT JOIN employers e ON j.employer_id = e.user_id
-            WHERE ja.job_seeker_id = $1
-            ORDER BY ja.applied_at DESC
-        `, [userId]);
-        
-        res.json({ success: true, applications: result.rows });
-    } catch (error) {
-        console.error('Get applications error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// ============================================
-// POST /api/jobs/view-requirements
+// VIEW REQUIREMENTS
 // ============================================
 router.post('/view-requirements', [
     body('jobId').isUUID(),
@@ -162,29 +135,47 @@ router.post('/view-requirements', [
     const db = req.app.get('db');
     
     try {
-        const jobResult = await db.query(
-            `SELECT title, description, requirements FROM jobs WHERE id = $1`,
-            [jobId]
+        const existingPayment = await db.query(
+            `SELECT * FROM job_applications 
+             WHERE job_id = $1 AND job_seeker_id = $2 AND requirements_fee_paid = true`,
+            [jobId, userId]
         );
         
-        if (jobResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
+        if (existingPayment.rows.length > 0) {
+            const jobResult = await db.query(
+                `SELECT title, description, requirements, location, salary_range, employment_type 
+                 FROM jobs WHERE id = $1`,
+                [jobId]
+            );
+            
+            if (jobResult.rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Job not found' });
+            }
+            
+            return res.json({
+                success: true,
+                already_paid: true,
+                requirements: jobResult.rows[0]
+            });
         }
         
         res.json({
             success: true,
-            already_paid: true,
-            requirements: jobResult.rows[0]
+            requires_payment: true,
+            amount: 50,
+            transaction_type: 'job_view_requirements',
+            metadata: { jobId, userId },
+            requirements: null
         });
         
     } catch (error) {
         console.error('View requirements error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 });
 
 // ============================================
-// POST /api/jobs/get-employer-details
+// GET EMPLOYER DETAILS
 // ============================================
 router.post('/get-employer-details', [
     body('jobId').isUUID(),
@@ -194,32 +185,49 @@ router.post('/get-employer-details', [
     const db = req.app.get('db');
     
     try {
-        const employerResult = await db.query(
-            `SELECT u.full_name, u.email, u.phone, e.company_name, e.company_address
-             FROM jobs j
-             JOIN employers e ON j.employer_id = e.user_id
-             JOIN users u ON e.user_id = u.id
-             WHERE j.id = $1`,
-            [jobId]
+        const existingAccess = await db.query(
+            `SELECT * FROM job_employer_access 
+             WHERE job_id = $1 AND user_id = $2`,
+            [jobId, userId]
         );
         
-        if (employerResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
+        if (existingAccess.rows.length > 0) {
+            const employerResult = await db.query(
+                `SELECT u.full_name, u.email, u.phone, e.company_name, e.company_address
+                 FROM jobs j
+                 JOIN employers e ON j.employer_id = e.user_id
+                 JOIN users u ON e.user_id = u.id
+                 WHERE j.id = $1`,
+                [jobId]
+            );
+            
+            if (employerResult.rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'Job not found' });
+            }
+            
+            return res.json({
+                success: true,
+                already_paid: true,
+                employer: employerResult.rows[0]
+            });
         }
         
         res.json({
             success: true,
-            employer: employerResult.rows[0]
+            requires_payment: true,
+            amount: 100,
+            transaction_type: 'employer_details',
+            metadata: { jobId, userId }
         });
         
     } catch (error) {
         console.error('Get employer details error:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
 // ============================================
-// POST /api/jobs/apply
+// APPLY FOR JOB
 // ============================================
 router.post('/apply', 
     upload.single('cv'),
@@ -245,7 +253,7 @@ router.post('/apply',
             }
             
             const jobResult = await db.query(
-                `SELECT j.*, u.email as employer_email
+                `SELECT j.*, u.email as employer_email, e.company_name
                  FROM jobs j
                  JOIN employers e ON j.employer_id = e.user_id
                  JOIN users u ON e.user_id = u.id
@@ -262,24 +270,99 @@ router.post('/apply',
             const applicationResult = await db.query(
                 `INSERT INTO job_applications 
                  (job_id, job_seeker_id, job_seeker_name, job_seeker_email, job_seeker_phone, 
-                  cv_url, cover_letter, employer_email)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                  cv_url, cover_letter, employer_email, cv_upload_fee_paid, status)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                  RETURNING id`,
                 [jobId, userId, job_seeker_name, job_seeker_email, job_seeker_phone, 
-                 req.file.path, cover_letter, job.employer_email]
+                 req.file.path, cover_letter, job.employer_email, false, 'pending']
             );
             
             res.json({
                 success: true,
-                message: 'Application submitted successfully',
-                applicationId: applicationResult.rows[0].id
+                requires_payment: true,
+                amount: 50,
+                transaction_type: 'cv_upload',
+                metadata: { 
+                    jobId, 
+                    userId, 
+                    applicationId: applicationResult.rows[0].id,
+                    employerEmail: job.employer_email,
+                    jobTitle: job.title,
+                    applicantName: job_seeker_name,
+                    cvPath: req.file.path
+                }
             });
             
         } catch (error) {
             console.error('Apply for job error:', error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(500).json({ success: false, message: 'Server error' });
         }
     }
 );
 
+// ============================================
+// GET JOB SEEKER APPLICATIONS
+// ============================================
+router.get('/applications/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(`
+            SELECT ja.*, j.title as job_title, j.location, e.company_name, ja.status
+            FROM job_applications ja
+            JOIN jobs j ON ja.job_id = j.id
+            LEFT JOIN employers e ON j.employer_id = e.user_id
+            WHERE ja.job_seeker_id = $1
+            ORDER BY ja.applied_at DESC
+        `, [userId]);
+        
+        res.json({ success: true, applications: result.rows });
+    } catch (error) {
+        console.error('Get applications error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// SEND APPLICATION EMAIL TO EMPLOYER
+// ============================================
+async function sendApplicationToEmployer(applicationId, cvPath, jobTitle, employerEmail, applicantName) {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM,
+            to: employerEmail,
+            subject: `New Job Application: ${jobTitle}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #4a5568;">New Application Received</h2>
+                    <p><strong>Job Title:</strong> ${jobTitle}</p>
+                    <p><strong>Applicant Name:</strong> ${applicantName}</p>
+                    <p><strong>Application Date:</strong> ${new Date().toLocaleString()}</p>
+                    <p>Please log in to your employer dashboard to view the full application and download the CV.</p>
+                    <a href="${process.env.FRONTEND_URL}/pages/employer-dashboard.html" 
+                       style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 20px 0;">
+                        View Applications
+                    </a>
+                </div>
+            `,
+            attachments: [
+                {
+                    filename: `CV_${applicantName.replace(/\s/g, '_')}.pdf`,
+                    path: cvPath
+                }
+            ]
+        };
+        
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error('Email send error:', error);
+        return false;
+    }
+}
+
+// ============================================
+// EXPORT ROUTER
+// ============================================
 module.exports = router;

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
 
 // ============================================
 // ADMIN MIDDLEWARE
@@ -128,12 +127,10 @@ router.put('/verify-user/:userId', isAdmin, async (req, res) => {
             [is_verified, adminId, userId]
         );
         
-        // If approved, activate employer or service provider account
         if (is_verified) {
             const user = userResult.rows[0];
             
             if (user.role === 'employer') {
-                // Check if employer record exists, if not create one
                 const employerCheck = await db.query(
                     'SELECT * FROM employers WHERE user_id = $1',
                     [userId]
@@ -161,7 +158,6 @@ router.put('/verify-user/:userId', isAdmin, async (req, res) => {
             }
         }
         
-        // Send email notification
         const emailUtil = require('../utils/email');
         if (is_verified) {
             await emailUtil.sendVerificationApproval(userResult.rows[0].email, userResult.rows[0].full_name);
@@ -181,7 +177,7 @@ router.put('/verify-user/:userId', isAdmin, async (req, res) => {
 });
 
 // ============================================
-// GET ALL USERS (with pagination)
+// GET ALL USERS
 // ============================================
 router.get('/users', isAdmin, async (req, res) => {
     const { page = 1, limit = 20, role, is_verified } = req.query;
@@ -237,91 +233,6 @@ router.get('/users', isAdmin, async (req, res) => {
 });
 
 // ============================================
-// EXPORT USERS CSV
-// ============================================
-router.get('/export/users', isAdmin, async (req, res) => {
-    const db = req.app.get('db');
-    
-    try {
-        const result = await db.query(`
-            SELECT id, email, phone, full_name, role, is_verified, created_at
-            FROM users
-            WHERE role != 'admin' AND is_active = true
-            ORDER BY created_at DESC
-        `);
-        
-        const headers = ['ID', 'Name', 'Email', 'Phone', 'Role', 'Verified', 'Registered Date'];
-        const csvRows = [headers];
-        
-        for (const row of result.rows) {
-            csvRows.push([
-                row.id,
-                row.full_name,
-                row.email,
-                row.phone,
-                row.role,
-                row.is_verified ? 'Yes' : 'No',
-                row.created_at
-            ]);
-        }
-        
-        const csvContent = csvRows.map(row => row.join(',')).join('\n');
-        
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename=users_${new Date().toISOString().split('T')[0]}.csv`);
-        res.send(csvContent);
-    } catch (error) {
-        console.error('Export users error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// ============================================
-// EXPORT TRANSACTIONS CSV
-// ============================================
-router.get('/export/transactions', isAdmin, async (req, res) => {
-    const db = req.app.get('db');
-    
-    try {
-        const result = await db.query(`
-            SELECT t.id, t.transaction_type, t.amount, t.status, t.mpesa_receipt, 
-                   t.created_at, t.completed_at, u.full_name, u.email, u.phone
-            FROM transactions t
-            LEFT JOIN users u ON t.user_id = u.id
-            WHERE t.status = 'completed'
-            ORDER BY t.created_at DESC
-        `);
-        
-        const headers = ['Transaction ID', 'Type', 'Amount', 'Status', 'MPESA Receipt', 'Created At', 'Completed At', 'User Name', 'Email', 'Phone'];
-        const csvRows = [headers];
-        
-        for (const row of result.rows) {
-            csvRows.push([
-                row.id,
-                row.transaction_type,
-                row.amount,
-                row.status,
-                row.mpesa_receipt || '',
-                row.created_at,
-                row.completed_at || '',
-                row.full_name || '',
-                row.email || '',
-                row.phone || ''
-            ]);
-        }
-        
-        const csvContent = csvRows.map(row => row.join(',')).join('\n');
-        
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename=transactions_${new Date().toISOString().split('T')[0]}.csv`);
-        res.send(csvContent);
-    } catch (error) {
-        console.error('Export transactions error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// ============================================
 // DELETE USER
 // ============================================
 router.delete('/users/:userId', isAdmin, async (req, res) => {
@@ -341,7 +252,6 @@ router.delete('/users/:userId', isAdmin, async (req, res) => {
             return res.status(403).json({ success: false, message: 'Cannot delete the main admin account' });
         }
         
-        // Delete related records
         await db.query('DELETE FROM job_applications WHERE job_seeker_id = $1', [userId]);
         await db.query('DELETE FROM job_employer_access WHERE user_id = $1', [userId]);
         await db.query('DELETE FROM service_connections WHERE seeker_id = $1', [userId]);
@@ -480,6 +390,31 @@ router.get('/service-providers', isAdmin, async (req, res) => {
 });
 
 // ============================================
+// TOGGLE FEATURED SERVICE PROVIDER
+// ============================================
+router.put('/service-providers/:providerId/feature', isAdmin, async (req, res) => {
+    const { providerId } = req.params;
+    const { is_featured } = req.body;
+    const db = req.app.get('db');
+    
+    try {
+        await db.query(
+            `UPDATE service_providers SET is_featured = $1 WHERE user_id = $2`,
+            [is_featured, providerId]
+        );
+        
+        res.json({
+            success: true,
+            message: is_featured ? 'Provider featured' : 'Provider unfeatured'
+        });
+        
+    } catch (error) {
+        console.error('Toggle featured error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
 // GET ALL JOBS
 // ============================================
 router.get('/jobs', isAdmin, async (req, res) => {
@@ -567,31 +502,6 @@ router.get('/transactions', isAdmin, async (req, res) => {
         
     } catch (error) {
         console.error('Get transactions error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// ============================================
-// TOGGLE FEATURED SERVICE PROVIDER
-// ============================================
-router.put('/service-providers/:providerId/feature', isAdmin, async (req, res) => {
-    const { providerId } = req.params;
-    const { is_featured } = req.body;
-    const db = req.app.get('db');
-    
-    try {
-        await db.query(
-            `UPDATE service_providers SET is_featured = $1 WHERE user_id = $2`,
-            [is_featured, providerId]
-        );
-        
-        res.json({
-            success: true,
-            message: is_featured ? 'Provider featured' : 'Provider unfeatured'
-        });
-        
-    } catch (error) {
-        console.error('Toggle featured error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
@@ -701,4 +611,92 @@ router.put('/settings', isAdmin, async (req, res) => {
     }
 });
 
+// ============================================
+// EXPORT USERS CSV
+// ============================================
+router.get('/export/users', isAdmin, async (req, res) => {
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(`
+            SELECT id, email, phone, full_name, role, is_verified, created_at
+            FROM users
+            WHERE role != 'admin' AND is_active = true
+            ORDER BY created_at DESC
+        `);
+        
+        const headers = ['ID', 'Name', 'Email', 'Phone', 'Role', 'Verified', 'Registered Date'];
+        const csvRows = [headers];
+        
+        for (const row of result.rows) {
+            csvRows.push([
+                row.id,
+                row.full_name,
+                row.email,
+                row.phone,
+                row.role,
+                row.is_verified ? 'Yes' : 'No',
+                row.created_at
+            ]);
+        }
+        
+        const csvContent = csvRows.map(row => row.join(',')).join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=users_${new Date().toISOString().split('T')[0]}.csv`);
+        res.send(csvContent);
+    } catch (error) {
+        console.error('Export users error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// EXPORT TRANSACTIONS CSV
+// ============================================
+router.get('/export/transactions', isAdmin, async (req, res) => {
+    const db = req.app.get('db');
+    
+    try {
+        const result = await db.query(`
+            SELECT t.id, t.transaction_type, t.amount, t.status, t.mpesa_receipt, 
+                   t.created_at, t.completed_at, u.full_name, u.email, u.phone
+            FROM transactions t
+            LEFT JOIN users u ON t.user_id = u.id
+            WHERE t.status = 'completed'
+            ORDER BY t.created_at DESC
+        `);
+        
+        const headers = ['Transaction ID', 'Type', 'Amount', 'Status', 'MPESA Receipt', 'Created At', 'Completed At', 'User Name', 'Email', 'Phone'];
+        const csvRows = [headers];
+        
+        for (const row of result.rows) {
+            csvRows.push([
+                row.id,
+                row.transaction_type,
+                row.amount,
+                row.status,
+                row.mpesa_receipt || '',
+                row.created_at,
+                row.completed_at || '',
+                row.full_name || '',
+                row.email || '',
+                row.phone || ''
+            ]);
+        }
+        
+        const csvContent = csvRows.map(row => row.join(',')).join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=transactions_${new Date().toISOString().split('T')[0]}.csv`);
+        res.send(csvContent);
+    } catch (error) {
+        console.error('Export transactions error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// ============================================
+// EXPORT ROUTER
+// ============================================
 module.exports = router;

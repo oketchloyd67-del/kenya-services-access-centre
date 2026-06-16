@@ -146,7 +146,7 @@ router.post('/register', [
 });
 
 // ============================================
-// VERIFY ID (Updated: ID front/back + certificate PDF only)
+// VERIFY ID (ID front/back + certificate PDF only)
 // ============================================
 router.post('/verify-id', 
     upload.fields([
@@ -169,19 +169,16 @@ router.post('/verify-id',
         let idFrontValid = false;
         let idBackValid = false;
         
-        // Validate front ID photo
         if (req.files['id_photo_front']) {
             const idFrontPath = req.files['id_photo_front'][0].path;
             idFrontValid = await validateOriginalPhoto(idFrontPath);
         }
         
-        // Validate back ID photo
         if (req.files['id_photo_back']) {
             const idBackPath = req.files['id_photo_back'][0].path;
             idBackValid = await validateOriginalPhoto(idBackPath);
         }
         
-        // Build updates
         const updates = {};
         if (req.files['id_photo_front']) {
             updates.id_photo_front_url = req.files['id_photo_front'][0].path;
@@ -193,17 +190,14 @@ router.post('/verify-id',
             updates.business_certificate_url = req.files['certificate'][0].path;
         }
         
-        // Check if all required documents are uploaded and valid
         const hasFrontId = !!req.files['id_photo_front'];
         const hasBackId = !!req.files['id_photo_back'];
         const hasCertificate = !!req.files['certificate'];
         
-        // For employers and service providers, certificate is required
         const requiresCertificate = (user.role === 'employer' || user.role === 'service_provider');
         const isVerified = hasFrontId && hasBackId && idFrontValid && idBackValid && 
                           (requiresCertificate ? hasCertificate : true);
         
-        // Update user record
         await db.query(
             `UPDATE users 
              SET id_photo_url = COALESCE($1, id_photo_url),
@@ -222,7 +216,6 @@ router.post('/verify-id',
             ]
         );
         
-        // Notify admin if employer verified
         if (user.role === 'employer' && isVerified) {
             const io = req.app.get('io');
             io.emit('admin_notification', {
@@ -346,4 +339,7 @@ router.get('/profile/:userId', async (req, res) => {
     }
 });
 
+// ============================================
+// EXPORT ROUTER
+// ============================================
 module.exports = router;
