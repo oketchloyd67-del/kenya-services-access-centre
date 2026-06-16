@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
 
 // ============================================
-// GET NOTIFICATIONS FOR CURRENT USER
+// GET NOTIFICATIONS
 // ============================================
 router.get('/', async (req, res) => {
     const userId = req.user?.id;
@@ -22,10 +21,7 @@ router.get('/', async (req, res) => {
             [userId]
         );
         
-        res.json({ 
-            success: true, 
-            notifications: result.rows 
-        });
+        res.json({ success: true, notifications: result.rows });
     } catch (error) {
         console.error('Get notifications error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -46,17 +42,11 @@ router.put('/:id/read', async (req, res) => {
     const db = req.app.get('db');
     
     try {
-        const result = await db.query(
-            `UPDATE notifications 
-             SET is_read = true 
-             WHERE id = $1 AND user_id = $2
-             RETURNING id`,
+        await db.query(
+            `UPDATE notifications SET is_read = true 
+             WHERE id = $1 AND user_id = $2`,
             [id, userId]
         );
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Notification not found' });
-        }
         
         res.json({ success: true });
     } catch (error) {
@@ -79,9 +69,7 @@ router.put('/read-all', async (req, res) => {
     
     try {
         await db.query(
-            `UPDATE notifications 
-             SET is_read = true 
-             WHERE user_id = $1`,
+            `UPDATE notifications SET is_read = true WHERE user_id = $1`,
             [userId]
         );
         
@@ -93,11 +81,14 @@ router.put('/read-all', async (req, res) => {
 });
 
 // ============================================
-// CREATE NOTIFICATION (Internal use only)
+// CREATE NOTIFICATION (Helper Function)
 // ============================================
-// This function is meant to be used internally by other routes
 async function createNotification(userId, title, message, type = 'info', metadata = null) {
-    const db = require('../server').pool;
+    const db = req.app?.get('db');
+    if (!db) {
+        console.error('Database not available for notification');
+        return { success: false, error: 'Database not available' };
+    }
     
     try {
         const result = await db.query(
@@ -108,7 +99,7 @@ async function createNotification(userId, title, message, type = 'info', metadat
         );
         
         // Emit real-time notification via Socket.io
-        const io = require('../server').io;
+        const io = req.app?.get('io');
         if (io) {
             io.to(`user_${userId}`).emit('new_notification', {
                 id: result.rows[0].id,
@@ -140,16 +131,10 @@ router.delete('/:id', async (req, res) => {
     const db = req.app.get('db');
     
     try {
-        const result = await db.query(
-            `DELETE FROM notifications 
-             WHERE id = $1 AND user_id = $2
-             RETURNING id`,
+        await db.query(
+            `DELETE FROM notifications WHERE id = $1 AND user_id = $2`,
             [id, userId]
         );
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Notification not found' });
-        }
         
         res.json({ success: true, message: 'Notification deleted' });
     } catch (error) {
@@ -159,7 +144,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ============================================
-// EXPORT ROUTER AND HELPER FUNCTION
+// EXPORT ROUTER AND HELPER
 // ============================================
 module.exports = router;
-module.exports.createNotification = require('./notifications').createNotification;
+module.exports.createNotification = createNotification;
