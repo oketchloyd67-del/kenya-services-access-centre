@@ -22,6 +22,7 @@ const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
 const passwordRoutes = require('./routes/password');
 const notificationRoutes = require('./routes/notifications');
+const reviewRoutes = require('./routes/reviews');
 
 // ============================================
 // INITIALIZE APP
@@ -77,6 +78,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/reviews', reviewRoutes);
 
 // Session configuration
 app.use(session({
