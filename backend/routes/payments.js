@@ -13,6 +13,13 @@ const KORA_REDIRECT_URL = process.env.KORA_REDIRECT_URL || 'https://kenyaservice
 const KORA_WEBHOOK_URL = process.env.KORA_WEBHOOK_URL || 'https://kenyaservices-accesscentre-ly34.onrender.com/api/kora/webhook';
 
 // ============================================
+// TEST ENDPOINT
+// ============================================
+router.get('/test', (req, res) => {
+    res.json({ success: true, message: 'Payments API is working with Kora' });
+});
+
+// ============================================
 // INITIATE KORA PAYMENT
 // ============================================
 router.post('/kora/initiate', async (req, res) => {
@@ -137,7 +144,6 @@ router.post('/kora/webhook', async (req, res) => {
     console.log('Webhook Body:', JSON.stringify(body, null, 2));
 
     try {
-        // Kora sends event data
         const { event, data } = body;
 
         if (event === 'charge.success') {
@@ -165,7 +171,6 @@ router.post('/kora/webhook', async (req, res) => {
 
                 console.log('Processing payment for:', tx.transaction_type);
 
-                // Handle post-payment actions based on transaction type
                 switch (tx.transaction_type) {
                     case 'employer_registration':
                         await db.query(
@@ -219,7 +224,6 @@ router.post('/kora/webhook', async (req, res) => {
                             [txMetadata.applicationId, tx.user_id]
                         );
 
-                        // Send email to employer if applicable
                         if (txMetadata.employerEmail && txMetadata.jobTitle && txMetadata.applicantName) {
                             await emailUtil.sendApplicationNotification(
                                 txMetadata.employerEmail,
@@ -248,7 +252,6 @@ router.post('/kora/webhook', async (req, res) => {
                             [txMetadata.providerId]
                         );
 
-                        // Send email to service provider
                         if (txMetadata.providerEmail && txMetadata.seeker_name && txMetadata.seeker_phone) {
                             await emailUtil.sendConnectionNotification(
                                 txMetadata.providerEmail,
@@ -264,7 +267,6 @@ router.post('/kora/webhook', async (req, res) => {
                         console.log('Unknown transaction type:', tx.transaction_type);
                 }
 
-                // Send real-time notification via WebSocket
                 io.to(`user_${tx.user_id}`).emit('payment_success', {
                     amount: tx.amount,
                     receipt: transaction_id || reference,
@@ -283,12 +285,10 @@ router.post('/kora/webhook', async (req, res) => {
             console.log('❌ Payment failed for:', reference);
         }
 
-        // Always acknowledge receipt to Kora
         res.json({ status: 'received' });
 
     } catch (error) {
         console.error('❌ Webhook processing error:', error);
-        // Still acknowledge to prevent retries
         res.json({ status: 'received' });
     }
 });
@@ -321,10 +321,6 @@ router.get('/transaction-status/:reference', async (req, res) => {
 });
 
 // ============================================
-// TEST ENDPOINT
+// EXPORT ROUTER
 // ============================================
-router.get('/test', (req, res) => {
-    res.json({ success: true, message: 'Payments API is working with Kora' });
-});
-
 module.exports = router;
