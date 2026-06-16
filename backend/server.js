@@ -30,7 +30,6 @@ const reviewRoutes = require('./routes/reviews');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io with CORS
 const io = socketIo(server, {
     cors: {
         origin: 'https://kenyaservices-accesscentre-emph.onrender.com',
@@ -78,9 +77,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(limiter);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use('/api/reviews', reviewRoutes);
 
-// Session configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'default_secret',
     resave: false,
@@ -131,6 +128,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/password', passwordRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // ============================================
 // HEALTH CHECK
@@ -158,7 +156,7 @@ if (process.env.NODE_ENV === 'production') {
 // CRON JOBS
 // ============================================
 cron.schedule('0 * * * *', async () => {
-    console.log('Running subscription expiry check...', new Date().toISOString());
+    console.log('Running subscription expiry check...');
     try {
         const expiredEmployers = await pool.query(`
             UPDATE employers 
@@ -242,9 +240,6 @@ server.listen(PORT, () => {
     console.log(`API: http://localhost:${PORT}/api`);
 });
 
-// ============================================
-// GRACEFUL SHUTDOWN
-// ============================================
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully...');
     server.close(() => {
